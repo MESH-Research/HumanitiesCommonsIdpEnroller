@@ -62,7 +62,7 @@
         <font class="desc"><?php print _txt('pl.humanitiescommonsidpenroller.config.ldap_bind_password.desc'); ?></font>
       </td>
       <td>
-        <?php print ($e ? $this->Form->password('ldap_bind_password', array('size' => 50)) : Sanitize::html($humanities_commons_idp_enroller_configs[0]['HumanitiesCommonsIdpEnrollerConfig']['ldap_bind_password'])); ?>
+        <?php print ($e ? $this->Form->password('ldap_bind_password', array('size' => 50)) : "" ); ?>
       </td>
     </tr>
     <tr class="line<?php print ($l % 2); $l++; ?>">
