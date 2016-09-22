@@ -69,6 +69,7 @@ $cm_humanities_commons_idp_enroller_texts['en_US'] = array(
   'pl.humanitiescommonsidpenroller.provision.view.password.new' => 'New Password',
   'pl.humanitiescommonsidpenroller.provision.view.password.label' => 'Password',
   'pl.humanitiescommonsidpenroller.provision.view.password.confirm.label' => 'Confirm Password',
+  'pl.humanitiescommonsidpenroller.provision.view.password.confirm.error' => 'Passwords do not match',
   'pl.humanitiescommonsidpenroller.provision.view.password.aftersubmit' => 'Click "Submit" to set your password. You will then need to authenticate using your username and password.',
 
 

@@ -21,13 +21,13 @@
  * @license       Apache License, Version 2.0 (http://www.apache.org/licenses/LICENSE-2.0)
  * @version       $Id$
  */
+  // Add style overrides
+  print $this->Html->css('HumanitiesCommonsIdpEnroller.default');
 
   // Add page title
   $params = array('title' => _txt('pl.humanitiescommonsidpenroller.provision.view.title'));
   print $this->element("pageTitleAndButtons", $params);
 
-  $submit_label = _txt('op.add');
-  
   print $this->Form->create(false);
   
   if(!empty($vv_petitionId)) {
@@ -38,94 +38,125 @@
     print $this->Form->hidden('petitionToken', array('default' => $vv_petitionToken)) . "\n";
   }
 ?>
-<div>
-  <div id="tabs-attributes">
-    <div class="fields" style="overflow:hidden;">
-      <div class="ui-widget modelbox">
-        <?php print _txt('pl.humanitiescommonsidpenroller.provision.view.password.constraints'); ?>
-      </div>
-      <div class="ui-widget modelbox">
-        <div class="boxtitle">
-          <strong><?php print _txt('pl.humanitiescommonsidpenroller.provision.view.username.label'); ?></strong>
-          <span class="required">*</span>
-        </div>
-        <table class="ui-widget">
-          <tbody>
-            <tr class="line0">
-              <td>
-                <strong><?php print _txt('pl.humanitiescommonsidpenroller.provision.view.username.label'); ?></strong>
-              </td>
-              <td>
-                <?php 
-                  $args = array();
-                  $args['type'] = 'text';
-                  $args['label'] = false;
-                  $args['value'] = $vv_username;
-                  $args['disabled'] = 'disabled';
-                  print $this->Form->input('username', $args); 
-                ?>    
-              </td>
-            </tr>
-                <?php 
-                  $args = array();
-                  $args['type'] = 'hidden';
-                  $args['value'] = $vv_username;
-                  print $this->Form->input('username', $args); 
-                ?>    
-          </tbody>
-        </table>
-      </div>
-      <div class="ui-widget modelbox">
-        <div class=boxtitle">
-          <strong><?php print _txt('pl.humanitiescommonsidpenroller.provision.view.password.new'); ?></strong>
-          <span class="required">*</span>
-        </div>
-        <table class="ui-widget">
-          <tbody>
-            <tr class="line0">
-              <td>
-                <strong><?php print _txt('pl.humanitiescommonsidpenroller.provision.view.password.label'); ?></strong>
-              </td>
-              <td>
-                <?php 
-                  $args = array();
-                  $args['label'] = false;
-                  print $this->Form->password('password1', $args); 
-                ?>    
-              </td>
-            </tr>
-            <tr class="line1">
-              <td>
-                <strong><?php print _txt('pl.humanitiescommonsidpenroller.provision.view.password.confirm.label'); ?></strong>
-              </td>
-              <td>
-                <?php 
-                  $args = array();
-                  $args['label'] = false;
-                  print $this->Form->password('password2', $args); 
-                ?>    
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-      <div class="ui-widget modelbox">
-        <?php print _txt('pl.humanitiescommonsidpenroller.provision.view.password.aftersubmit'); ?>
+
+<script type="text/javascript">
+  $("#provisionForm").submit(function() {
+    // setup
+    var valid = true;
+    var constraints = /^(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{10,}$/; // minimum 10 chars, one int, one lower alpha, one upper alpha
+    var pw1 = $("#password1").val();
+    var pw2 = $("#password2").val();
+
+    $("#coSpinner").show();
+    $(".field-error").empty();
+    $("input[type='password']").removeClass("form-error");
+
+    // validate
+    if (!constraints.test(pw1)) {
+      $("#password1").addClass("form-error");
+      $("#password1-error").html('<span class="error-message"><?php print _txt('pl.humanitiescommonsidpenroller.provision.view.password.constraints'); ?></span>');
+      valid = false;
+    }
+    if (pw1 != pw2) {
+      $("#password2").addClass("form-error");
+      $("#password2-error").html('<span class="error-message"><?php print _txt('pl.humanitiescommonsidpenroller.provision.view.password.confirm.error'); ?></span>');
+      valid = false;
+    }
+
+    if (!valid) {
+      $("#coSpinner").hide();
+      return false;
+    }
+    return true;
+  });
+</script>
+
+<div id="tabs-attributes">
+  <div class="ui-state-highlight ui-corner-all co-info-topbox">
+    <p>
+      <span class="ui-icon ui-icon-info co-info"></span>
+      <strong><?php print _txt('pl.humanitiescommonsidpenroller.provision.view.password.constraints'); ?></strong>
+    </p>
+  </div>
+  <div class="fields" style="margin-top: 1em;">
+    <div class="ui-widget modelbox">
+      <div class=boxtitle">
+        <strong><?php print _txt('pl.humanitiescommonsidpenroller.provision.view.password.new'); ?></strong>
+        <span class="required">*</span>
       </div>
       <table class="ui-widget">
         <tbody>
           <tr>
             <td>
-              <em><span class="required"><?php print _txt('fd.req'); ?></span></em><br />
+              <strong><?php print _txt('pl.humanitiescommonsidpenroller.provision.view.username.label'); ?></strong>
             </td>
-            <td class="submitCell">
-              <?php print $this->Form->submit(_txt('op.submit')); ?>
+            <td>
+              <?php
+                $args = array();
+                $args['type'] = 'text';
+                $args['label'] = false;
+                $args['value'] = $vv_username;
+                $args['disabled'] = 'disabled';
+                print $this->Form->input('username', $args);
+              ?>
+              <?php
+                $args = array();
+                $args['type'] = 'hidden';
+                $args['value'] = $vv_username;
+                print $this->Form->input('username', $args);
+              ?>
             </td>
+          </tr>
+          <tr>
+            <td>
+              <strong><?php print _txt('pl.humanitiescommonsidpenroller.provision.view.password.label'); ?></strong>
+              <span class="required">*</span>
+            </td>
+            <td>
+              <?php
+                $args = array();
+                $args['label'] = false;
+                $args['required'] = 'required';
+                print $this->Form->password('password1', $args);
+              ?>
+              <span id="password1-error" class="field-error"></span>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <strong><?php print _txt('pl.humanitiescommonsidpenroller.provision.view.password.confirm.label'); ?></strong>
+              <span class="required">*</span>
+            </td>
+            <td>
+              <?php
+                $args = array();
+                $args['label'] = false;
+                $args['required'] = 'required';
+                print $this->Form->password('password2', $args);
+              ?>
+              <span id="password2-error" class="field-error"></span>
+            </td>
+          </tr>
+          <tr>
+            <td></td>
+            <td><span class="desc"><?php print _txt('pl.humanitiescommonsidpenroller.provision.view.password.aftersubmit'); ?></span></td>
           </tr>
         </tbody>
       </table>
-
     </div>
+    <table class="ui-widget submit-table">
+      <tbody>
+        <tr>
+          <td>
+            <em><span class="required"><?php print _txt('fd.req'); ?></span></em><br />
+          </td>
+          <td class="submitCell">
+            <?php print $this->Form->submit(_txt('op.submit')); ?>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+
   </div>
 </div>
 <?php
