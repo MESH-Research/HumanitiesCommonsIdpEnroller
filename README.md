@@ -79,3 +79,11 @@ The plugin assumes:
 (4) The LDAP server has the ppolicy overlay installed and configured so that
     the server hashes passwords before storing them. The passwords are sent
     to the server in plain text and must be hashed by the LDAP server.
+
+--------
+
+This plugin should **not** be used with the core
+[IdentifierEnrollerPlugin](https://spaces.internet2.edu/display/COmanage/IdentifierEnroller+Plugin)
+since it implements the same functionality but with extra logic to handle
+the case where the user has authenticated with the Humanities Commons
+IdP.
