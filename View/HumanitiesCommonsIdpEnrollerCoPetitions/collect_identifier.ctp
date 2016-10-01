@@ -1,6 +1,6 @@
 <?php
 /**
- * COmanage Registry MLA Humanities Commons IdP Enroller Accounts Provision View
+ * COmanage Registry MLA Humanities Commons IdP Enroller CoPetitions Collect Identifier View
  *
  * Copyright (C) 2016 Modern Language Association
  * 
@@ -25,22 +25,18 @@
   print $this->Html->css('HumanitiesCommonsIdpEnroller.default');
 
   // Add page title
-  $params = array('title' => _txt('pl.humanitiescommonsidpenroller.provision.view.title'));
+  $params = array('title' => _txt('pl.humanitiescommonsidpenroller.copetition.view.title'));
   print $this->element("pageTitleAndButtons", $params);
 
   print $this->Form->create(false);
-  
 ?>
 
 <script type="text/javascript">
-  $("#provisionForm").submit(function() {
+  $("#collectIdentifierForm").submit(function() {
     // setup
     var valid = true;
-    var pwdconstraints = /^(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{10,}$/; // minimum 10 chars, one int, one lower alpha, one upper alpha
     var usernameconstraints = /^[a-zA-Z0-9]+$/; // only ascii numbers and letters
     var username = $("#username").val();
-    var pw1 = $("#password1").val();
-    var pw2 = $("#password2").val();
 
     $("#coSpinner").show();
     $(".field-error").empty();
@@ -50,16 +46,6 @@
     if (!usernameconstraints.test(username)) {
       $("#username").addClass("form-error");
       $("#username-error").html('<span class="error-message"><?php print _txt('pl.humanitiescommonsidpenroller.provision.view.username.constraints'); ?></span>');
-      valid = false;
-    }
-    if (!pwdconstraints.test(pw1)) {
-      $("#password1").addClass("form-error");
-      $("#password1-error").html('<span class="error-message"><?php print _txt('pl.humanitiescommonsidpenroller.provision.view.password.constraints'); ?></span>');
-      valid = false;
-    }
-    if (pw1 != pw2) {
-      $("#password2").addClass("form-error");
-      $("#password2-error").html('<span class="error-message"><?php print _txt('pl.humanitiescommonsidpenroller.provision.view.password.confirm.error'); ?></span>');
       valid = false;
     }
 
@@ -75,11 +61,7 @@
   <div class="ui-state-highlight ui-corner-all co-info-topbox">
     <p>
       <span class="ui-icon ui-icon-info co-info"></span>
-      <strong>
-        <?php print _txt('pl.humanitiescommonsidpenroller.provision.view.username.constraints'); ?>
-        <br>
-        <?php print _txt('pl.humanitiescommonsidpenroller.provision.view.password.constraints'); ?>
-      </strong>
+      <strong><?php print _txt('pl.humanitiescommonsidpenroller.copetition.view.username.constraints'); ?></strong>
     </p>
   </div>
   <div class="fields" style="margin-top: 1em;">
@@ -101,40 +83,6 @@
               ?>
               <span id="username-error" class="field-error"></span>
             </td>
-          </tr>
-          <tr>
-            <td>
-              <strong><?php print _txt('pl.humanitiescommonsidpenroller.provision.view.password.label'); ?></strong>
-              <span class="required">*</span>
-            </td>
-            <td>
-              <?php
-                $args = array();
-                $args['label'] = false;
-                $args['required'] = 'required';
-                print $this->Form->password('password1', $args);
-              ?>
-              <span id="password1-error" class="field-error"></span>
-            </td>
-          </tr>
-          <tr>
-            <td>
-              <strong><?php print _txt('pl.humanitiescommonsidpenroller.provision.view.password.confirm.label'); ?></strong>
-              <span class="required">*</span>
-            </td>
-            <td>
-              <?php
-                $args = array();
-                $args['label'] = false;
-                $args['required'] = 'required';
-                print $this->Form->password('password2', $args);
-              ?>
-              <span id="password2-error" class="field-error"></span>
-            </td>
-          </tr>
-          <tr>
-            <td></td>
-            <td><span class="desc"><?php print _txt('pl.humanitiescommonsidpenroller.provision.view.password.aftersubmit'); ?></span></td>
           </tr>
         </tbody>
       </table>

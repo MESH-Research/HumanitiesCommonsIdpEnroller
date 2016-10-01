@@ -85,6 +85,15 @@
     </tr>
     <tr class="line<?php print ($l % 2); $l++; ?>">
       <td>
+        <strong class="fieldTitle"><?php print _txt('pl.humanitiescommonsidpenroller.config.hc_idp_scope'); ?></strong><font class="required">*</font><br />
+        <font class="desc"><?php print _txt('pl.humanitiescommonsidpenroller.config.hc_idp_scope.desc'); ?></font>
+      </td>
+      <td>
+        <?php print ($e ? $this->Form->input('hc_idp_scope', array('size' => 50)) : Sanitize::html($humanities_commons_idp_enroller_configs[0]['HumanitiesCommonsIdpEnrollerConfig']['hc_idp_scope'])); ?>
+      </td>
+    </tr>
+    <tr class="line<?php print ($l % 2); $l++; ?>">
+      <td>
         <strong class="fieldTitle"><?php print _txt('pl.humanitiescommonsidpenroller.config.debug'); ?></strong><font class="required">*</font><br />
         <font class="desc"><?php print _txt('pl.humanitiescommonsidpenroller.config.debug.desc'); ?></font>
       </td>

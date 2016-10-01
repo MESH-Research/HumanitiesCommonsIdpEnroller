@@ -29,8 +29,20 @@ class HumanitiesCommonsIdpEnrollerAccount extends AppModel {
   // No database table for this model
   public $useTable = false;
 
-  // Validation rules for password
+  // Validation rules for username and password
   public $validate = array(
+    'username' => array(
+      'notBlank' => array(
+        'rule' => 'notBlank',
+        'message' => 'Please insert username',
+        'last' => true
+      ),
+      'onlyLatinCharacters' => array(
+        'rule' => '/^[a-zA-Z0-9]+$/',
+        'message' => 'Your username must only contain letters and numbers',
+        'last' => true,
+      )
+    ),
     'password1' => array(
       'notBlank' => array(
         'rule' => 'notBlank',

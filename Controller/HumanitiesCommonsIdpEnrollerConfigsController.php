@@ -47,7 +47,7 @@ class HumanitiesCommonsIdpEnrollerConfigsController extends StandardController {
     // If configuration already exists redirect to edit action
     $args = array();
     $args['conditions']['HumanitiesCommonsIdpEnrollerConfig.id'] = 1;
-    $args['contain'] = true;
+    $args['contain']                                             = true;
     $config = $this->HumanitiesCommonsIdpEnrollerConfig->find('first', $args);
     if (!empty($config)) {
       $this->redirect(array('action' => 'edit', 1));
@@ -74,7 +74,7 @@ class HumanitiesCommonsIdpEnrollerConfigsController extends StandardController {
     // If no configuration exists yet redirect to add action
     $args = array();
     $args['conditions']['HumanitiesCommonsIdpEnrollerConfig.id'] = 1;
-    $args['contain'] = true;
+    $args['contain']                                             = true;
     $config = $this->HumanitiesCommonsIdpEnrollerConfig->find('first', $args);
     if (empty($config)) {
       $this->redirect(array('action' => 'add'));
@@ -153,7 +153,7 @@ class HumanitiesCommonsIdpEnrollerConfigsController extends StandardController {
     // If no configuration exists yet redirect to add action
     $args = array();
     $args['conditions']['HumanitiesCommonsIdpEnrollerConfig.id'] = 1;
-    $args['contain'] = true;
+    $args['contain']                                             = true;
     $config = $this->HumanitiesCommonsIdpEnrollerConfig->find('first', $args);
     if (empty($config)) {
       $this->redirect(array('action' => 'add'));

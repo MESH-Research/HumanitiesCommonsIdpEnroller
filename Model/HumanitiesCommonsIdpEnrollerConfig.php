@@ -62,5 +62,10 @@ class HumanitiesCommonsIdpEnrollerConfig extends AppModel {
       'required' => true,
       'allowEmpty' => false
     ),
+    'hc_idp_scope' => array(
+      'rule' => 'notBlank',
+      'required' => true,
+      'allowEmpty' => false
+    )
   );
 }

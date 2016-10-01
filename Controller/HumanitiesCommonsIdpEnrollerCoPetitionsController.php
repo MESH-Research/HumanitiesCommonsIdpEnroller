@@ -27,27 +27,27 @@ App::uses('CoPetitionsController', 'Controller');
 class HumanitiesCommonsIdpEnrollerCoPetitionsController extends CoPetitionsController {
   // Class name, used by Cake
   public $name = "HumanitiesCommonsIdpEnrollerCoPetitions";
+
   public $uses = array(
-    'CoPetition',
-    'Identifier');
+                  'CoPetition',
+                  'HumanitiesCommonsIdpEnroller.HumanitiesCommonsIdpEnrollerConfig'
+                 );
 
   /**
-   * Callback after petitioner attributes collected
+   * Collect identifier used with WordPress and as username for Humanities Commons IdP
    *
-   * @since  COmanage Directory 1.1.0
-   * @param  Integer $id ID of the petition
-   * @param  Mixed $onFinish Passed to redirect after function exit
-   * @return void
+   * @since  COmanage Registry v1.1.0
+   * @param  Integer $id       CO Petition ID
+   * @param  Array   $onFinish Redirect target on completion
    */
 
-  protected function execute_plugin_petitionerAttributes($id, $onFinish) {
-    $logPrefix = "HumanitiesCommonsIdpEnrollerCoPetitionsController execute_plugin_petitionerAttributes ";
+  protected function execute_plugin_collectIdentifier($id, $onFinish) {
+    $logPrefix = "HumanitiesCommonsIdpEnrollerCoPetitionsController execute_plugin_collectIdentifier ";
 
     // Find our configuration
-    $this->loadModel("HumanitiesCommonsIdpEnroller.HumanitiesCommonsIdpEnrollerConfig");
     $args = array();
     $args['conditions']['HumanitiesCommonsIdpEnrollerConfig.id'] = 1;
-    $args['contain'] = true;
+    $args['contain']                                             = true;
     $config = $this->HumanitiesCommonsIdpEnrollerConfig->find('first', $args);
     if (empty($config)) {
       $this->Flash->set(_txt('er.humanitiescommonsidpenroller.account.noconfig'), array('key' => 'error'));
@@ -61,8 +61,12 @@ class HumanitiesCommonsIdpEnrollerCoPetitionsController extends CoPetitionsContr
 
     // Use the petition id to find the petition
     $args = array();
-    $args['conditions']['CoPetition.id'] = $id;
-    $args['contain'] = false;
+    $args['conditions']['CoPetition.id']                 = $id;
+    $args['contain']                                     = array();
+    $args['contain']['EnrolleeCoPerson']['Identifier']   = array();
+    $args['contain']['EnrolleeCoPerson']['Name']         = array();
+    $args['contain']['EnrolleeCoPerson']['EmailAddress'] = array();
+
     $coPetition = $this->CoPetition->find('first', $args);
     if (empty($coPetition)) {
       $this->Flash->set(_txt('er.humanitiescommonsidpenroller.copetition.id.none', array($id)), array('key' => 'error'));
@@ -70,21 +74,185 @@ class HumanitiesCommonsIdpEnrollerCoPetitionsController extends CoPetitionsContr
       return;
     }
 
-    // Confirm the petition has an associated token
-    if(!isset($coPetition['CoPetition']['petitioner_token'])) {
-      $this->Flash->set(_txt('er.humanitiescommonsidpenroller.copetition.token.none', array($id)), array('key' => 'error'));
-      $this->redirect("/");
+    // If the petition already has a username then do not present
+    // a form and just redirect.
+    foreach($coPetition['EnrolleeCoPerson']['Identifier'] as $identifier) {
+      if($identifier['type'] == $config['HumanitiesCommonsIdpEnrollerConfig']['username_id_type'] && 
+          !empty($identifier['identifier']) ) {
+            $this->redirect($onFinish);
+          }
     }
 
-    $token = $coPetition['CoPetition']['petitioner_token'];
+    // If the authenticated identifier was provided by the Humanities Commons IdP
+    // add the username as an identifier, update name and email in LDAP using
+    // values in the petition, do not show a form to collect username and
+    // instead redirect.
+    list($username, $domain) = explode("@", $coPetition['CoPetition']['authenticated_identifier']);
+    if ($domain == $config['HumanitiesCommonsIdpEnrollerConfig']['hc_idp_scope']) {
+      $newIdentifier                               = array();
+      $newIdentifier['Identifier']['identifier']   = $username;
+      $newIdentifier['Identifier']['type']         = $config['HumanitiesCommonsIdpEnrollerConfig']['username_id_type'];
+      $newIdentifier['Identifier']['status']       = SuspendableStatusEnum::Active;
+      $newIdentifier['Identifier']['co_person_id'] = $coPetition['EnrolleeCoPerson']['id'];
 
-    // Write the petition ID and token into the session
-    $this->Session->write('HC.petitionId', $id);
-    ( $debug ? $this->log($logPrefix . "Wrote petition id $id into the session") : null);
+      if(!$this->CoPetition->EnrolleeCoPerson->Identifier->save($newIdentifier)) {
+        $this->Flash->set(_txt('er.humanitiescommonsidpenroller.copetition.identifier.save', array($username)), array('key' => 'error'));
+        $this->redirect("/");
+      }
 
-    $this->Session->write('HC.petitionToken', $token);
-    ( $debug ? $this->log($logPrefix . "Wrote petition token $token into the session") : null);
+      ( $debug ? $this->log($logPrefix . "Saved new identifier $username") : null);
+      
+      // Also provision the name and email to the existing LDAP record
+      // using details from the petition.
+      if (!$this->_updateLdap($username, $coPetition, $config)) {
+        // Failure to update LDAP here is probably not critical since name and email
+        // are not necessary for HumanitiesCommons IdP authentication, although having
+        // no email makes password recovery harder.
+        $this->log($logPrefix . "Unable to update LDAP record for username $username");
+      }
 
-    $this->redirect($onFinish);
+      // Redirect to continue the enrollment flow
+      $this->redirect($onFinish);
+
+    }
+
+    // Display a form to allow the user to specify username
+    if($this->request->is('post')) {
+      // POST, process the request
+      if (preg_match('/^[a-zA-Z0-9]+$/', $this->request->data['username'])) {
+        $newIdentifier                               = array();
+        $newIdentifier['Identifier']['identifier']   = $this->request->data['username'];
+        $newIdentifier['Identifier']['type']         = $config['HumanitiesCommonsIdpEnrollerConfig']['username_id_type'];
+        $newIdentifier['Identifier']['status']       = SuspendableStatusEnum::Active;
+        $newIdentifier['Identifier']['co_person_id'] = $coPetition['EnrolleeCoPerson']['id'];
+
+        if($this->CoPetition->EnrolleeCoPerson->Identifier->save($newIdentifier)) {
+          // We are done so redirect
+          $this->redirect($onFinish);
+        }
+            
+        // Problem saving, fall through render form again
+      }
+
+      // Bad username input, fall through render form again
+    }
+
+    // GET, fall through to display view
+  }
+
+  /**
+   * Parse email from the CoPetition 
+   * - precondition: Email set on CoPerson linked to CoPetition
+   *
+   * @since  COmanage Directory 1.1.0
+   * @param  Array $coPetition CoPetition for this enrollment
+   * @param  Array $config Configuration for the plugin
+   * @return String email
+   */
+
+  function _parseEmail($coPetition, $config) {
+    // We assume the email is being copied to the CoPerson from the
+    // OrgIdentity during enrollment so that we can only inspect the
+    // CoPerson. We also assume the form collects official email.
+    if(!isset($coPetition['EnrolleeCoPerson']['EmailAddress'])) {
+      return null;
+    }
+    foreach ($coPetition['EnrolleeCoPerson']['EmailAddress'] as $email) {
+      $type = $email['type'];
+      $mail = $email['mail'];
+      $deleted = $email['deleted'];
+      if (isset($mail) && empty($deleted) && $type == EmailAddressEnum::Official ) {
+        return $mail;
+      }
+    }
+
+    return null;
+  }
+
+  /**
+   * Parse Name from the CoPetition 
+   * - precondition: Name set on CoPerson linked to CoPetition
+   *
+   * @since  COmanage Directory 1.1.0
+   * @param  Array $coPetition CoPetition for this enrollment
+   * @param  Array $config Configuration for the plugin
+   * @return Array array of given name and family name
+   */
+
+  function _parseName($coPetition, $config) {
+    // We assume the name is being copied to the CoPerson from the
+    // OrgIdentity during enrollment so that we can only inspect the
+    // CoPerson. We also assume the form collects official name.
+    if(!isset($coPetition['EnrolleeCoPerson']['Name'])) {
+      return null;
+    }
+    foreach ($coPetition['EnrolleeCoPerson']['Name'] as $name) {
+      $type = $name['type'];
+      $given = $name['given'];
+      $family = $name['family'];
+      $deleted = $name['deleted'];
+      if (isset($given) && isset($family) && empty($deleted) && $type == NameEnum::Official ) {
+        return array($given, $family);
+      }
+    }
+
+    return null;
+  }
+
+  /**
+   * Update the record in LDAP
+   * - precondition: record with uid=username exists in LDAP
+   *
+   * @since  COmanage Directory 1.1.0
+   * @param  String $username RDN of the record to be updated
+   * @param  Array $coPetition CoPetition for this enrollment
+   * @param  Array $config Configuration for the plugin
+   * @return Boolen true if LDAP updated false otherwise
+   */
+
+  protected function _updateLdap($username, $coPetition, $config) {
+    $logPrefix = "HumanitiesCommonsIdpEnrollerCoPetitionsController _updateLdap ";
+
+    $cxn = ldap_connect($config['HumanitiesCommonsIdpEnrollerConfig']['ldap_serverurl']);
+    
+    if(!$cxn) {
+      throw new RuntimeException(_txt('er.ldapprovisioner.connect'), 0x5b /*LDAP_CONNECT_ERROR*/);
+    }
+    
+    // Use LDAP v3 
+    ldap_set_option($cxn, LDAP_OPT_PROTOCOL_VERSION, 3);
+    
+    // Bind to LDAP server
+    $binddn = $config['HumanitiesCommonsIdpEnrollerConfig']['ldap_binddn'];
+    $bindPassword = $config['HumanitiesCommonsIdpEnrollerConfig']['ldap_bind_password'];
+    if(!@ldap_bind($cxn, $binddn, $bindPassword)) {
+      $msg = ldap_error($cxn) . " : " .  strval(ldap_errno($cxn));
+      $this->log($logPrefix . "Unable to bind to LDAP server: " . $msg);
+      return false;
+    }
+
+    $mail = $this->_parseEmail($coPetition, $config);
+    list($givenName, $sn) = $this->_parseName($coPetition, $config);
+
+    $basedn = $config['HumanitiesCommonsIdpEnrollerConfig']['ldap_basedn'];
+    $dn = "uid=$username,$basedn";
+
+    $attributes              = array();
+    $attributes['givenName'] = $givenName;
+    $attributes['sn']        = $sn;
+    $attributes['cn']        = "$givenName $sn";
+    $attributes['mail']      = $mail;
+
+    // Update the record
+    if(!@ldap_modify($cxn, $dn, $attributes)) {
+      $msg = ldap_error($cxn) . " : " .  strval(ldap_errno($cxn));
+      $this->log($logPrefix . "Error when modifying DN: " . $msg);
+      return false;
+    }
+  
+    // Drop the connection
+    ldap_unbind($cxn);
+
+    return true;
   }
 }

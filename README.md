@@ -14,16 +14,61 @@ permissions and limitations under the License.
 
 --------
 
-This plugin must be configured by choosing "HC Idp Enroller Configuration" from
-the Platform menu.
+During a Humanities Commons enrollment flow this plugin performs one of two functions
+depending on whether or not the user chooses the Humanities Commons identity provider
+(IdP) during IdP discovery.
+
+If the user chooses the Humanities Commons IdP at discovery the discovery service
+can invoke
+
+```
+/registry/humanities_commons_idp_enroller/humanities_commons_idp_enroller_accounts/provision
+```
+
+to display a form that collects the username and password that the user will use with
+the Humanities Commons IdP. After submitting the form the username and password are
+provisioned to the LDAP server and the flow continues. To continue the enrollment flow
+the discovery service should invoke the URL above with the query string parameter
+`target` and the value that the discovery page would have otherwise used after
+an IdP is selected by the user, for example
+
+```
+?target=https%3A%2F%2Fregistry-dev.commons.mla.org%2FShibboleth.sso%2FLogin%3FSAMLDS%3D1%26target%3Dss%253Amem%253A58fd2928856cb1d50621cf34fa0614509f6e6e837dc0f3779fdc887a5f7cfa07%26entityID%3Dhttps%253A%252F%252Fhcommons-test.commons.mla.org%252Fidp%252Fshibboleth
+```
+
+Later during the flow after the user authenticates using her newly provisioned credentials
+and the Humanities Commons IdP the plugin examines the authenticated identifier. 
+If the authenticated identifier shows that the Humanities Commons IdP was used 
+the plugin takes the username from the scoped eduPersonPrincipalName asserted by the 
+IdP and attaches it to the CoPerson record as the WordPress identifier. It also
+examines the petition to find the enrollee's name and email and updates the LDAP
+record with them. The flow then continues.
+
+If the user does **not** choose the Humanities Commons IdP at discovery the plugin
+displays a form after authentication to allow the user to choose her WordPress
+username or identifier. That identifier is attached to the CoPerson record and the
+flow continues.
+
+The functionality to examine the authenticated identifier and branch depending
+on whether or not the user authenticated with the Humanities Commons IdP is
+implemented in the `execute_plugin_collectIdentifier` method of the
+`HumanitiesCommonsIdpEnrollerCoPetitionsController` and is invoked by the 
+COmanage plugin mechanism.
+
+The functionality to allow a user that chooses the Humanities Commons IdP
+during discovery to provision a new username and password is implemented
+as a "stand alone" controller.
+
+The plugin also has a stand alone controller for configuration since normally
+enrollment flow plugins do not implement direct configuration functionality
+([they are non-instantiated](https://spaces.internet2.edu/display/COmanage/Writing+Registry+Plugins)).
 
 --------
 
 The plugin assumes:
 
-(1) The identifier configured to be used as the username for the account
-    is unique and that uniqueness is enforced by other parts of the
-    enrollment process.
+(1) The identifier configured to be used as the WordPress username 
+    is unique. TODO: Add fuctionality to enforce uniqueness.
 
 (2) The enrollee name and email address are copied from the OrgIdentity
     to the CoPerson during the collection of enrollment attributes.
@@ -34,25 +79,3 @@ The plugin assumes:
 (4) The LDAP server has the ppolicy overlay installed and configured so that
     the server hashes passwords before storing them. The passwords are sent
     to the server in plain text and must be hashed by the LDAP server.
-
---------
-
-The core Registry enrollment plugin mechanism will invoke the first part of
-the plugin functionality immediately after the user submits the form
-with name, email, and identifier.
-
-The second part of the plugin functionality must be invoked by directing
-the browser to 
-
-```
-/registry/humanities_commons_idp_enroller/humanities_commons_idp_enroller_accounts/provision
-```
-as part of IdP discovery. The request MUST include the query parameter 'target' with
-value the URL-encoded location to which the plugin will direct the browser after account
-provisioning. That value is the same value that the discovery service would normally use
-to direct the browser directly and should include the entityID for the Humanities Commons
-IdP since the account is provisioned into that IdP. An example is
-
-```
-?target=https%3A%2F%2Fregistry-dev.commons.mla.org%2FShibboleth.sso%2FLogin%3FSAMLDS%3D1%26target%3Dss%253Amem%253A58fd2928856cb1d50621cf34fa0614509f6e6e837dc0f3779fdc887a5f7cfa07%26entityID%3Dhttps%253A%252F%252Fhcommons-test.commons.mla.org%252Fidp%252Fshibboleth
-```
