@@ -95,10 +95,23 @@ class HumanitiesCommonsIdpEnrollerCoPetitionsController extends CoPetitionsContr
       $newIdentifier['Identifier']['status']       = SuspendableStatusEnum::Active;
       $newIdentifier['Identifier']['co_person_id'] = $coPetition['EnrolleeCoPerson']['id'];
 
-      if(!$this->CoPetition->EnrolleeCoPerson->Identifier->save($newIdentifier)) {
-        $this->Flash->set(_txt('er.humanitiescommonsidpenroller.copetition.identifier.save', array($username)), array('key' => 'error'));
-        $this->redirect("/");
+      $err = false;
+
+      try {
+        $this->CoPetition->EnrolleeCoPerson->Identifier->create();
+        $this->CoPetition->EnrolleeCoPerson->Identifier->save($newIdentifier);
+
+      } catch (Exception $e) {
+        $err = true;
+        $this->Flash->set($e->getMessage(), array('key' => 'error'));
       }
+
+      if ($err) {
+        // If we cannot attach the identifier to the CoPerson record we abort
+        // the enrollment flow entirely since the user will not able to get
+        // to the application without it.
+        $this->redirect("/");
+      } 
 
       ( $debug ? $this->log($logPrefix . "Saved new identifier $username") : null);
       
@@ -126,8 +139,19 @@ class HumanitiesCommonsIdpEnrollerCoPetitionsController extends CoPetitionsContr
         $newIdentifier['Identifier']['status']       = SuspendableStatusEnum::Active;
         $newIdentifier['Identifier']['co_person_id'] = $coPetition['EnrolleeCoPerson']['id'];
 
-        if($this->CoPetition->EnrolleeCoPerson->Identifier->save($newIdentifier)) {
-          // We are done so redirect
+        $err = false;
+
+        try {
+          $this->CoPetition->EnrolleeCoPerson->Identifier->create();
+          $this->CoPetition->EnrolleeCoPerson->Identifier->save($newIdentifier);
+
+        } catch (Exception $e) {
+          $err = true;
+          $this->Flash->set($e->getMessage(), array('key' => 'error'));
+          unset($this->request->data['username']);
+        }
+
+        if (!$err) {
           $this->redirect($onFinish);
         }
             

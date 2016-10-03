@@ -27,8 +27,10 @@ App::uses("StandardController", "Controller");
 class HumanitiesCommonsIdpEnrollerAccountsController extends StandardController {
   // Class name, used by Cake
   public $name = "HumanitiesCommonsIdpEnrollerAccounts";
+
   public $uses = array(
-                  'CoPetition',
+                  'Co',
+                  'Identifier',
                   'HumanitiesCommonsIdpEnroller.HumanitiesCommonsIdpEnrollerConfig',
                   'HumanitiesCommonsIdpEnroller.HumanitiesCommonsIdpEnrollerAccount',
                  );
@@ -75,24 +77,67 @@ class HumanitiesCommonsIdpEnrollerAccountsController extends StandardController 
 
     // Process submitted form
     if($this->request->is('post')) {
+      // We check for uniqueness of the identifier across all COs since this action is
+      // accessed anonmymously and we cannot know the CO.
+      $args = array();
+      $args['contain'] = true;
+      $cos = $this->Co->find('all', $args);
+
+      foreach($cos as $co) {
+        // Skip the COmanage CO
+        if ($co['Co']['id'] == 0) {
+          continue;
+        }
+
+        // The checkAvailability() method is to be called within a transaction.
+        // See its definition in AppModel.php along with the comments for the
+        // findForUpdate() method.
+        $this->Identifier->getDataSource()->begin();
+
+        try {
+          $this->Identifier->checkAvailability($this->request->data['username'],
+                                   $config['HumanitiesCommonsIdpEnrollerConfig']['username_id_type'],
+                                   $co['Co']['id']);
+        }
+        catch(Exception $e) {
+          // Roll back the transaction, set the flash message and then return to fall
+          // through to having the view display the form again for the user.
+          $this->Identifier->getDataSource()->rollback();
+          $this->Flash->set($e->getMessage(), array('key' => 'error'));
+          unset($this->request->data['username']);
+          return;
+        }
+
+        $this->Identifier->getDataSource()->commit();
+      }
 
       // Validate the password inputs
       $this->HumanitiesCommonsIdpEnrollerAccount->set($this->request->data);
-      if($this->HumanitiesCommonsIdpEnrollerAccount->validates()) {
+      if (!$this->HumanitiesCommonsIdpEnrollerAccount->validates()) {
+          $this->Flash->set(_txt('er.humanitiescommonsidpenroller.account.password.validation.error'), array('key' => 'error'));
+          unset($this->request->data['password1']);
+          unset($this->request->data['password2']);
+          return;
+      }
 
-        // Provision account to LDAP
-        if(!$this->_provisionLdap($config)) {
-          $this->Flash->set(_txt('er.humanitiescommonsidpenroller.account.ldap'), array('key' => 'error'));
-          $this->redirect("/");
-        }
+      // Provision to LDAP
+      if(!$this->_provisionLdap($config)) {
+        $this->Flash->set(_txt('er.humanitiescommonsidpenroller.account.ldap'), array('key' => 'error'));
+        unset($this->request->data['username']);
+        return;
+      }
 
-        // Redirect to the target passed in the query string
+      // Redirect to the target passed in the query string
+      if (isset($this->request->query['target'])) {
         $this->redirect(urldecode($this->request->query['target']));
+      } else {
+        $this->Flash->set(_txt('er.humanitiescommonsidpenroller.account.target.missing'), array('key' => 'error'));
+        return;
       }
       
-      // Fall through to displaying the form again
-
     }
+
+    // Request is GET so display form in view
   }
 
   /**

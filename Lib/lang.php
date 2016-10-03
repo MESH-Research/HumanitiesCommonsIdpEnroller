@@ -36,19 +36,10 @@ $cm_humanities_commons_idp_enroller_texts['en_US'] = array(
   // Error messages
   'er.humanitiescommonsidpenroller.account.ldap' => 'Error provisioning account to LDAP',
   'er.humanitiescommonsidpenroller.account.noconfig' => 'Cannot find Humanities Commons IdP Enroller Configuration',
-  'er.humanitiescommonsidpenroller.account.petition.id.session.none' => 'Cannot find petition ID in session',
-  'er.humanitiescommonsidpenroller.account.petition.id.mismatch' => 'Submitted petition ID does not match that found in the session',
-  'er.humanitiescommonsidpenroller.account.petition.id.missing' => 'Petition ID missing',
-  'er.humanitiescommonsidpenroller.account.petition.none' => 'Cannot find petition with ID %1$s',
-  'er.humanitiescommonsidpenroller.account.petition.token.mismatch' => 'Submitted petition token does not match that found in the session',
-  'er.humanitiescommonsidpenroller.account.petition.token.missing' => 'Petition token missing',
-  'er.humanitiescommonsidpenroller.account.petition.token.session.none' => 'Cannot find petition token in session',
-  'er.humanitiescommonsidpenroller.account.petition.token.session.bad' => 'Bad petition token in session',
+  'er.humanitiescommonsidpenroller.account.password.validation.error' => 'Password does not meet constraints',
+  'er.humanitiescommonsidpenroller.account.target.missing' => 'Query parameter "target" missing',
   'er.humanitiescommonsidpenroller.config.singleton' => 'Only one Humanities Commons IdP Enroller Configuration is permitted',
-  'er.humanitiescommonsidpenroller.config.username' => 'Cannot find username in petition',
   'er.humanitiescommonsidpenroller.copetition.id.none' => 'Cannot find petition with ID %1$s',
-  'er.humanitiescommonsidpenroller.copetition.identifier.save' => 'Error saving identifier %1$s',
-  'er.humanitiescommonsidpenroller.copetition.token.none' => 'Cannot find token for petition with ID %1$s',
   
   // Plugin texts
   'pl.humanitiescommonsidpenroller.config.username_id_type'       => 'Username ID Type',
