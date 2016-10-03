@@ -88,12 +88,14 @@ class HumanitiesCommonsIdpEnrollerCoPetitionsController extends CoPetitionsContr
     // values in the petition, do not show a form to collect username and
     // instead redirect.
     list($username, $domain) = explode("@", $coPetition['CoPetition']['authenticated_identifier']);
+    $idType = $config['HumanitiesCommonsIdpEnrollerConfig']['username_id_type'];
+    $coPersonId = $coPetition['EnrolleeCoPerson']['id'];
     if ($domain == $config['HumanitiesCommonsIdpEnrollerConfig']['hc_idp_scope']) {
       $newIdentifier                               = array();
       $newIdentifier['Identifier']['identifier']   = $username;
-      $newIdentifier['Identifier']['type']         = $config['HumanitiesCommonsIdpEnrollerConfig']['username_id_type'];
+      $newIdentifier['Identifier']['type']         = $idType;
       $newIdentifier['Identifier']['status']       = SuspendableStatusEnum::Active;
-      $newIdentifier['Identifier']['co_person_id'] = $coPetition['EnrolleeCoPerson']['id'];
+      $newIdentifier['Identifier']['co_person_id'] = $coPersonId;
 
       $err = false;
 
@@ -124,6 +126,23 @@ class HumanitiesCommonsIdpEnrollerCoPetitionsController extends CoPetitionsContr
         $this->log($logPrefix . "Unable to update LDAP record for username $username");
       }
 
+      // Create some history
+      $actorCoPersonId = $this->Session->read('Auth.User.co_person_id');
+      
+      $txt = _txt('pl.humanitiescommonsidpenroller.copetition.identifier.autoselected', array($username, $idType));
+      
+      $this->CoPetition->EnrolleeCoPerson->HistoryRecord->record($coPersonId,
+                                                                 null,
+                                                                 null,
+                                                                 $actorCoPersonId,
+                                                                 ActionEnum::CoPersonEditedPetition,
+                                                                 $txt);
+
+      $this->CoPetition->CoPetitionHistoryRecord->record($id,
+                                                         $actorCoPersonId,
+                                                         PetitionActionEnum::AttributesUpdated,
+                                                         $txt);
+
       // Redirect to continue the enrollment flow
       $this->redirect($onFinish);
 
@@ -133,11 +152,15 @@ class HumanitiesCommonsIdpEnrollerCoPetitionsController extends CoPetitionsContr
     if($this->request->is('post')) {
       // POST, process the request
       if (preg_match('/^[a-zA-Z0-9]+$/', $this->request->data['username'])) {
+        $username = $this->request->data['username'];
+        $idType = $config['HumanitiesCommonsIdpEnrollerConfig']['username_id_type'];
+        $coPersonId = $coPetition['EnrolleeCoPerson']['id'];
+
         $newIdentifier                               = array();
-        $newIdentifier['Identifier']['identifier']   = $this->request->data['username'];
-        $newIdentifier['Identifier']['type']         = $config['HumanitiesCommonsIdpEnrollerConfig']['username_id_type'];
+        $newIdentifier['Identifier']['identifier']   = $username;
+        $newIdentifier['Identifier']['type']         = $idType;
         $newIdentifier['Identifier']['status']       = SuspendableStatusEnum::Active;
-        $newIdentifier['Identifier']['co_person_id'] = $coPetition['EnrolleeCoPerson']['id'];
+        $newIdentifier['Identifier']['co_person_id'] = $coPersonId;
 
         $err = false;
 
@@ -152,6 +175,23 @@ class HumanitiesCommonsIdpEnrollerCoPetitionsController extends CoPetitionsContr
         }
 
         if (!$err) {
+          // Create some history
+          $actorCoPersonId = $this->Session->read('Auth.User.co_person_id');
+          
+          $txt = _txt('pl.humanitiescommonsidpenroller.copetition.identifier.selected', array($username, $idType));
+          
+          $this->CoPetition->EnrolleeCoPerson->HistoryRecord->record($coPersonId,
+                                                                     null,
+                                                                     null,
+                                                                     $actorCoPersonId,
+                                                                     ActionEnum::CoPersonEditedManual,
+                                                                     $txt);
+
+          $this->CoPetition->CoPetitionHistoryRecord->record($id,
+                                                             $actorCoPersonId,
+                                                             PetitionActionEnum::AttributesUpdated,
+                                                             $txt);
+
           $this->redirect($onFinish);
         }
             
