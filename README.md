@@ -28,7 +28,7 @@ can invoke
 to display a form that collects the username and password that the user will use with
 the Humanities Commons IdP. After submitting the form the username and password are
 provisioned to the LDAP server and the flow continues. To continue the enrollment flow
-the discovery service should invoke the URL above with the query string parameter
+the discovery service **MUST** invoke the URL above with the query string parameter
 `target` and the value that the discovery page would have otherwise used after
 an IdP is selected by the user, for example
 
@@ -59,6 +59,9 @@ The functionality to allow a user that chooses the Humanities Commons IdP
 during discovery to provision a new username and password is implemented
 as a "stand alone" controller.
 
+The value chosen by the user for the identifier, whether as part of the
+Humanities Commons IdP flow or otherwise, is checked for uniqueness.
+
 The plugin also has a stand alone controller for configuration since normally
 enrollment flow plugins do not implement direct configuration functionality
 ([they are non-instantiated](https://spaces.internet2.edu/display/COmanage/Writing+Registry+Plugins)).
@@ -67,18 +70,17 @@ enrollment flow plugins do not implement direct configuration functionality
 
 The plugin assumes:
 
-(1) The identifier configured to be used as the WordPress username 
-    is unique. TODO: Add fuctionality to enforce uniqueness.
-
-(2) The enrollee name and email address are copied from the OrgIdentity
+(1) The enrollee name and email address are copied from the OrgIdentity
     to the CoPerson during the collection of enrollment attributes.
 
-(3) The LDAP server has the pwmUser and inetOrgPerson objectClasses
+(2) The LDAP server has the pwmUser and inetOrgPerson objectClasses
     available.
 
-(4) The LDAP server has the ppolicy overlay installed and configured so that
+(3) The LDAP server has the ppolicy overlay installed and configured so that
     the server hashes passwords before storing them. The passwords are sent
     to the server in plain text and must be hashed by the LDAP server.
+
+(4) The identifier must be unique across all COs.
 
 --------
 
