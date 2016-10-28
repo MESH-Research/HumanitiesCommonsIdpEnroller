@@ -101,7 +101,9 @@ class HumanitiesCommonsIdpEnrollerCoPetitionsController extends CoPetitionsContr
 
       try {
         $this->CoPetition->EnrolleeCoPerson->Identifier->create();
-        $this->CoPetition->EnrolleeCoPerson->Identifier->save($newIdentifier);
+        $args = array();
+        $args['provision'] = false;
+        $this->CoPetition->EnrolleeCoPerson->Identifier->save($newIdentifier, $args);
 
       } catch (Exception $e) {
         $err = true;
@@ -166,7 +168,9 @@ class HumanitiesCommonsIdpEnrollerCoPetitionsController extends CoPetitionsContr
 
         try {
           $this->CoPetition->EnrolleeCoPerson->Identifier->create();
-          $this->CoPetition->EnrolleeCoPerson->Identifier->save($newIdentifier);
+          $args = array();
+          $args['provision'] = false;
+          $this->CoPetition->EnrolleeCoPerson->Identifier->save($newIdentifier, $args);
 
         } catch (Exception $e) {
           $err = true;
