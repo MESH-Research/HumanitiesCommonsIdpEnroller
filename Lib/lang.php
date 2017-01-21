@@ -61,6 +61,7 @@ $cm_humanities_commons_idp_enroller_texts['en_US'] = array(
   'pl.humanitiescommonsidpenroller.copetition.view.username.constraints' => 'Your username should contain only letters and numbers',
   'pl.humanitiescommonsidpenroller.copetition.identifier.autoselected' => 'Identifier "%1$s" (%2$s) automatically selected using authenticated identifier',
   'pl.humanitiescommonsidpenroller.copetition.identifier.selected' => 'Identifier "%1$s" (%2$s) selected',
+  'pl.humanitiescommonsidpenroller.copetition.select.view.title' => 'Create a Humanities Commons Login Server Account?',
   'pl.humanitiescommonsidpenroller.provision.view.title' => 'Choose Your Username and Password for the Humanities Commons Login Server',
   'pl.humanitiescommonsidpenroller.provision.view.username.constraints' => 'Your username must only contain letters and numbers.',
   'pl.humanitiescommonsidpenroller.provision.view.password.constraints' => 'Your password must be at least 10 characters long and include at least one number, lowercase letter, and uppercase letter.',

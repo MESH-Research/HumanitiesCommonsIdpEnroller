@@ -30,7 +30,8 @@ class HumanitiesCommonsIdpEnrollerCoPetitionsController extends CoPetitionsContr
 
   public $uses = array(
                   'CoPetition',
-                  'HumanitiesCommonsIdpEnroller.HumanitiesCommonsIdpEnrollerConfig'
+                  'HumanitiesCommonsIdpEnroller.HumanitiesCommonsIdpEnrollerConfig',
+                  'HumanitiesCommonsIdpEnroller.HumanitiesCommonsIdpEnrollerAccount'
                  );
 
   /**
@@ -79,6 +80,7 @@ class HumanitiesCommonsIdpEnrollerCoPetitionsController extends CoPetitionsContr
     foreach($coPetition['EnrolleeCoPerson']['Identifier'] as $identifier) {
       if($identifier['type'] == $config['HumanitiesCommonsIdpEnrollerConfig']['username_id_type'] && 
           !empty($identifier['identifier']) ) {
+            ( $debug ?  $this->log($logPrefix . "Petition already includes the identifier so silently continuing with enrollment") : null);
             $this->redirect($onFinish);
           }
     }
@@ -209,6 +211,114 @@ class HumanitiesCommonsIdpEnrollerCoPetitionsController extends CoPetitionsContr
   }
 
   /**
+   * Provision account in the Humanities Commons IdP for an authenticated user with
+   * an existing WordPress identifier during a self service account linking flow.
+   *
+   * @since  COmanage Registry v1.1.0
+   * @param  Integer $id       CO Petition ID
+   * @param  Array   $onFinish Redirect target on completion
+   */
+
+  protected function execute_plugin_selectEnrollee($id, $onFinish) {
+    $logPrefix = "HumanitiesCommonsIdpEnrollerCoPetitionsController execute_plugin_selectEnrollee ";
+
+    // Find our configuration
+    $args = array();
+    $args['conditions']['HumanitiesCommonsIdpEnrollerConfig.id'] = 1;
+    $args['contain']                                             = true;
+    $config = $this->HumanitiesCommonsIdpEnrollerConfig->find('first', $args);
+    if (empty($config)) {
+      $this->Flash->set(_txt('er.humanitiescommonsidpenroller.account.noconfig'), array('key' => 'error'));
+      $this->redirect("/");
+    }
+
+    // Set debugging level
+    $debug = $config['HumanitiesCommonsIdpEnrollerConfig']['debug'];
+
+    // Use the petition id to find the petition
+    $args = array();
+    $args['conditions']['CoPetition.id']                 = $id;
+    $args['contain']                                     = array();
+    $args['contain']['EnrolleeCoPerson']['Identifier']   = array();
+    $args['contain']['EnrolleeCoPerson']['Name']         = array();
+    $args['contain']['EnrolleeCoPerson']['EmailAddress'] = array();
+    $args['contain']['CoEnrollmentFlow']                 = array();
+
+    $coPetition = $this->CoPetition->find('first', $args);
+    if (empty($coPetition)) {
+      $this->Flash->set(_txt('er.humanitiescommonsidpenroller.copetition.id.none', array($id)), array('key' => 'error'));
+      $this->redirect("/");
+      return;
+    }
+
+    // We only want to fire on account linking flows
+    if ($coPetition['CoEnrollmentFlow']['match_policy'] != EnrollmentMatchPolicyEnum::Self) {
+      ( $debug ?  $this->log($logPrefix . "Not an account linking flow so redirecting") : null);
+      $this->redirect($onFinish);
+    }
+
+    // Find the existing identifier that will be used as the account name
+    // if a new Humanities Commons login server is created.
+    $username = null;
+    foreach($coPetition['EnrolleeCoPerson']['Identifier'] as $identifier) {
+      if($identifier['type'] == $config['HumanitiesCommonsIdpEnrollerConfig']['username_id_type'] && 
+          !empty($identifier['identifier']) ) {
+            $username = $identifier['identifier'];
+          }
+    }
+
+    if(empty($username)) {
+      // We should not get here so log a warning but allow the flow to proceed.
+      $this->log($logPrefix . "No existing identifier to use as username found with petition $id");
+      $this->redirect($onFinish);
+    }
+
+    ( $debug ? $this->log($logPrefix . "Found existing identifier so will set username to $username") : null);
+
+    // Display form to the user to query if they will use Google, Twitter, etc. OR
+    // they want to create a new Humanities Commons login server account and use it.
+    // If they have selected to create a new Humanities Commons login server account
+    // use the existing identifier as the username and the password the user
+    // entered to provision the account into the Humanities Commons login server.
+    if($this->request->is('post')) {
+        if($this->request->data['idpselection'] == 'HC') {
+          // Validate the password inputs
+          $newdata = array();
+          $newdata['username'] = $username;
+          $newdata['password1'] = $this->request->data['password1'];
+          $newdata['password2'] = $this->request->data['password2'];
+
+          $this->HumanitiesCommonsIdpEnrollerAccount->set($newdata);
+          if (!$this->HumanitiesCommonsIdpEnrollerAccount->validates()) {
+              $this->Flash->set(_txt('er.humanitiescommonsidpenroller.account.password.validation.error'), array('key' => 'error'));
+              unset($this->request->data['password1']);
+              unset($this->request->data['password2']);
+              return;
+          }
+
+          ( $debug ? $this->log($logPrefix . "Provisioning account $username to LDAP") : null);
+
+          // Provision to LDAP
+          if(!$this->_provisionLdap($username, $coPetition, $config)) {
+            $this->Flash->set(_txt('er.humanitiescommonsidpenroller.account.ldap'), array('key' => 'error'));
+            unset($this->request->data['password1']);
+            unset($this->request->data['password2']);
+            return;
+          }
+
+          ( $debug ? $this->log($logPrefix . "Done provisioning account $username to LDAP") : null);
+            
+        }
+        $this->redirect($onFinish);
+    } 
+
+    // Request is GET so display form to user with the username
+    // set to the existing identifier.
+    
+    $this->set('vv_username', $username);
+  }
+
+  /**
    * Parse email from the CoPetition 
    * - precondition: Email set on CoPerson linked to CoPetition
    *
@@ -265,6 +375,67 @@ class HumanitiesCommonsIdpEnrollerCoPetitionsController extends CoPetitionsContr
     }
 
     return null;
+  }
+
+  /**
+   * Provision account in LDAP server
+   * - precondition: LDAP server connection details configured for plugin
+   *
+   * @since  COmanage Directory 1.1.0
+   * @param  Array $coPetition CoPetition for this enrollment
+   * @param  Array $config Configuration for the plugin
+   * @return Boolean true if account provisioned or false if error
+   */
+
+  function _provisionLdap($username, $coPetition, $config) {
+    $logPrefix = "HumanitiesCommonsIdpEnrollerCoPetitionsController _provisionLdap ";
+
+    $cxn = ldap_connect($config['HumanitiesCommonsIdpEnrollerConfig']['ldap_serverurl']);
+    
+    if(!$cxn) {
+      throw new RuntimeException(_txt('er.ldapprovisioner.connect'), 0x5b /*LDAP_CONNECT_ERROR*/);
+    }
+    
+    // Use LDAP v3 
+    ldap_set_option($cxn, LDAP_OPT_PROTOCOL_VERSION, 3);
+    
+    // Bind to LDAP server
+    $binddn = $config['HumanitiesCommonsIdpEnrollerConfig']['ldap_binddn'];
+    $bindPassword = $config['HumanitiesCommonsIdpEnrollerConfig']['ldap_bind_password'];
+    if(!@ldap_bind($cxn, $binddn, $bindPassword)) {
+      $msg = ldap_error($cxn) . " : " .  strval(ldap_errno($cxn));
+      $this->log($logPrefix . "Unable to bind to LDAP server: " . $msg);
+      return false;
+    }
+
+    $uid = $username;
+
+    $mail = $this->_parseEmail($coPetition, $config);
+    list($givenName, $sn) = $this->_parseName($coPetition, $config);
+
+    // Create DN and attributes
+    $basedn = $config['HumanitiesCommonsIdpEnrollerConfig']['ldap_basedn'];
+    $dn = "uid=$uid,$basedn";
+    $attributes = array();
+    $attributes['objectClass'][0] = 'inetOrgPerson';
+    $attributes['objectClass'][1] = 'pwmUser';
+    $attributes['uid'] = $uid;
+    $attributes['givenName'] = $givenName;
+    $attributes['sn'] = $sn;
+    $attributes['cn'] = "$givenName $sn";
+    $attributes['userPassword'] = $this->request->data['password1'];
+
+    // Add the new account
+    if(!@ldap_add($cxn, $dn, $attributes)) {
+      $msg = ldap_error($cxn) . " : " .  strval(ldap_errno($cxn));
+      $this->log($logPrefix . "Error when adding DN: " . $msg);
+      return false;
+    }
+  
+    // Drop the connection
+    ldap_unbind($cxn);
+
+    return true;
   }
 
   /**
