@@ -421,6 +421,7 @@ class HumanitiesCommonsIdpEnrollerCoPetitionsController extends CoPetitionsContr
     $attributes['objectClass'][1] = 'pwmUser';
     $attributes['uid'] = $uid;
     $attributes['givenName'] = $givenName;
+    $attributes['mail'] = $mail;
     $attributes['sn'] = $sn;
     $attributes['cn'] = "$givenName $sn";
     $attributes['userPassword'] = $this->request->data['password1'];
