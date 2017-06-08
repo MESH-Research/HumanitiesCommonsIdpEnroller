@@ -1,6 +1,6 @@
 <?php
 /**
- * COmanage Registry MLA Humanities Commons IdP Enroller CoPetitions Select Enrollee View
+ * COmanage Registry MLA Humanities Commons IdP Enroller CoPetitions Petitioner Attributes View
  *
  * Copyright (C) 2016 Modern Language Association
  * 
@@ -27,54 +27,104 @@
   // Add page title
   $params = array('title' => _txt('pl.humanitiescommonsidpenroller.copetition.select.view.title'));
   print $this->element("pageTitleAndButtons", $params);
-
+ 
   print $this->Form->create(false);
 ?>
 
-<script type="text/javascript">
-  $("#collectIdentifierForm").submit(function() {
-    // setup
-    var valid = true;
-    var usernameconstraints = /^[a-zA-Z0-9]+$/; // only ascii numbers and letters
-    var username = $("#username").val();
+<script type="text/javascript"> 
+  $(function() {
 
-    $("#coSpinner").show();
-    $(".field-error").empty();
-    $("input[type='password']").removeClass("form-error");
+$('.hc_fields, .co_topbox_hc_fields').hide();
 
-    // validate
-    if (!usernameconstraints.test(username)) {
-      $("#username").addClass("form-error");
-      $("#username-error").html('<span class="error-message"><?php print _txt('pl.humanitiescommonsidpenroller.provision.view.username.constraints'); ?></span>');
-      valid = false;
-    }
+$('.co-info-topbox input[type="radio"]').change(function( e ) {
 
-    if (!valid) {
-      $("#coSpinner").hide();
-      return false;
-    }
-    return true;
-  });
+e.preventDefault();
+
+if( this.value == 'HC' ) {
+
+ $('.hc_fields, .co_topbox_hc_fields').fadeToggle();
+
+} else {
+
+$('.hc_fields:visible, .co_topbox_hc_fields:visible').fadeToggle();
+
+//lets empty the password fields so submit can go through
+$('#password1').val('');
+$('#password2').val('');
+
+$('#selectEnrolleeForm').submit();
+
+}
+
+});
+
+$("#selectEnrolleeForm").submit(function() {
+
+//lets check if the user selected yes before checking password fields for validation
+if( $('.co-info-topbox input[type="radio"]:checked').val() == 'yes' ) { 
+ 
+// setup
+  var valid = true;
+  var pwdconstraints = /^(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{10,}$/; // minimum 10 chars, one int, one lower alpha, one upper alpha
+  var usernameconstraints = /^[a-zA-Z0-9]+$/; // only ascii numbers and letters
+  var username = $("#username").val();
+  var pw1 = $("#password1").val();
+  var pw2 = $("#password2").val();
+
+  $("#coSpinner").show();
+  $(".field-error").empty();
+  $("input[type='password']").removeClass("form-error");
+
+  // validate
+  if (!usernameconstraints.test(username)) {
+    $("#username").addClass("form-error");
+    $("#username-error").html('<span class="error-message"><?php print _txt('pl.humanitiescommonsidpenroller.provision.view.username.constraints'); ?></span>');
+    valid = false;
+  }
+  if (!pwdconstraints.test(pw1)) {
+    $("#password1").addClass("form-error");
+    $("#password1-error").html('<span class="error-message"><?php print _txt('pl.humanitiescommonsidpenroller.provision.view.password.constraints'); ?></span>');
+    valid = false;
+  }
+  if (pw1 != pw2) {
+    $("#password2").addClass("form-error");
+    $("#password2-error").html('<span class="error-message"><?php print _txt('pl.humanitiescommonsidpenroller.provision.view.password.confirm.error'); ?></span>');
+    valid = false;
+  }
+
+  if (!valid) {
+    $("#coSpinner").hide();
+    return false;
+  }
+  
+  return true;
+  }
+
+});
+
+//ends anonymous function
+});
+
 </script>
 
 <div id="tabs-attributes">
   <div class="ui-corner-all co-info-topbox">
       <?php
         $options = array();
-        $options['HC'] = 'Humanities Commons';
-        $options['Other'] = 'Google, Twitter, or other';
-        $args = array();
+        $options['HC'] = 'Yes';
+        $options['Other'] = 'No';
+        $args['legend'] = 'Create Humanities Commons account?';
         print $this->Form->radio('idpselection', $options, $args);
       ?>
   </div>
-  <div class="ui-state-highlight ui-corner-all co-info-topbox">
+  <div class="ui-state-highlight ui-corner-all co-info-topbox co_topbox_hc_fields">
     <p>
       <span class="ui-icon ui-icon-info co-info"></span>
       <strong><?php print _txt('pl.humanitiescommonsidpenroller.provision.view.password.constraints'); ?></strong>
     </p>
   </div>
-  <div class="fields" style="margin-top: 1em;">
-    <div class="ui-widget modelbox">
+  <div class="fields hc_fields" style="margin-top: 1em;">
+    <div class="ui-widget modelbox hc_fields_two">
       <table class="ui-widget">
         <tbody>
           <tr>

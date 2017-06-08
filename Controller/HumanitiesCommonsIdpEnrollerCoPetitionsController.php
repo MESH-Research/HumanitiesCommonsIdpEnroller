@@ -245,14 +245,14 @@ class HumanitiesCommonsIdpEnrollerCoPetitionsController extends CoPetitionsContr
     $args['contain']['CoEnrollmentFlow']                 = array();
 
     $coPetition = $this->CoPetition->find('first', $args);
+
     if (empty($coPetition)) {
       $this->Flash->set(_txt('er.humanitiescommonsidpenroller.copetition.id.none', array($id)), array('key' => 'error'));
       $this->redirect("/");
       return;
     }
-
     // We only want to fire on account linking flows
-    if ($coPetition['CoEnrollmentFlow']['match_policy'] != EnrollmentMatchPolicyEnum::Self) {
+    if ($coPetition['CoEnrollmentFlow']['match_policy'] != EnrollmentMatchPolicyEnum::Self || ! strpos( $coPetition['CoEnrollmentFlow']['name'], 'Additional Login Method' ) ) {
       ( $debug ?  $this->log($logPrefix . "Not an account linking flow so redirecting") : null);
       $this->redirect($onFinish);
     }
