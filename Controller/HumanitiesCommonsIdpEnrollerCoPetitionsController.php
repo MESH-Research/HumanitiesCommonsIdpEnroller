@@ -79,6 +79,7 @@ class HumanitiesCommonsIdpEnrollerCoPetitionsController extends CoPetitionsContr
     foreach($coPetition['EnrolleeCoPerson']['Identifier'] as $identifier) {
       if($identifier['type'] == $config['HumanitiesCommonsIdpEnrollerConfig']['username_id_type'] && 
           !empty($identifier['identifier']) ) {
+            ( $debug ?  $this->log($logPrefix . "Petition already includes the identifier so silently continuing with enrollment") : null);
             $this->redirect($onFinish);
           }
     }
@@ -206,6 +207,62 @@ class HumanitiesCommonsIdpEnrollerCoPetitionsController extends CoPetitionsContr
     }
 
     // GET, fall through to display view
+  }
+
+  /**
+   * Set a cookie to flag when the enrollment flow is an identity linking flow
+   * and forced reauthentication should be used.
+   *
+   * @since  COmanage Registry v3.2.0
+   * @param  Integer $id       CO Petition ID
+   * @param  Array   $onFinish Redirect target on completion
+   */
+
+  protected function execute_plugin_selectEnrollee($id, $onFinish) {
+    $logPrefix = "HumanitiesCommonsIdpEnrollerCoPetitionsController execute_plugin_selectEnrollee ";
+
+    // Find our configuration
+    $args = array();
+    $args['conditions']['HumanitiesCommonsIdpEnrollerConfig.id'] = 1;
+    $args['contain']                                             = true;
+    $config = $this->HumanitiesCommonsIdpEnrollerConfig->find('first', $args);
+    if (empty($config)) {
+      $this->Flash->set(_txt('er.humanitiescommonsidpenroller.account.noconfig'), array('key' => 'error'));
+      $this->redirect("/");
+    }
+
+    // Set debugging level
+    $debug = $config['HumanitiesCommonsIdpEnrollerConfig']['debug'];
+
+    // Use the petition id to find the petition
+    $args = array();
+    $args['conditions']['CoPetition.id']                 = $id;
+    $args['contain']                                     = array();
+    $args['contain']['EnrolleeCoPerson']['Identifier']   = array();
+    $args['contain']['EnrolleeCoPerson']['Name']         = array();
+    $args['contain']['EnrolleeCoPerson']['EmailAddress'] = array();
+    $args['contain']['CoEnrollmentFlow']                 = array();
+
+    $coPetition = $this->CoPetition->find('first', $args);
+
+    if (empty($coPetition)) {
+      $this->Flash->set(_txt('er.humanitiescommonsidpenroller.copetition.id.none', array($id)), array('key' => 'error'));
+      $this->redirect("/");
+      return;
+    }
+    // We only want to fire on account linking flows
+    if ($coPetition['CoEnrollmentFlow']['match_policy'] != EnrollmentMatchPolicyEnum::Self || ! strpos( $coPetition['CoEnrollmentFlow']['name'], 'Additional Login Method' ) ) {
+      ( $debug ?  $this->log($logPrefix . "Not an account linking flow so redirecting") : null);
+      $this->redirect($onFinish);
+    }
+
+    // Set cookie to flag that we want forced re-authentication because this
+    // is an identity linking flow that may use the same IdP, e.g. Google
+    // gateway for both identities.
+    $forced_reauth_cookie_name = 'registry_forced_reauth_requested';
+    setcookie($forced_reauth_cookie_name, "1", time() + 300, '/', $_SERVER['HTTP_HOST'], true, true);
+
+    $this->redirect($onFinish);
   }
 
   /**
