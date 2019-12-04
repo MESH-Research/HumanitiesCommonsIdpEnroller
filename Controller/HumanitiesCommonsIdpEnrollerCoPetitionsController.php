@@ -41,7 +41,7 @@ class HumanitiesCommonsIdpEnrollerCoPetitionsController extends CoPetitionsContr
    * @param  Array   $onFinish Redirect target on completion
    */
 
-  protected function execute_plugin_collectIdentifier($id, $onFinish) {
+  protected function execute_plugin_checkEligibility($id, $onFinish) {
     $logPrefix = "HumanitiesCommonsIdpEnrollerCoPetitionsController execute_plugin_collectIdentifier ";
 
     // Find our configuration
