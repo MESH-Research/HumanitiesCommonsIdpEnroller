@@ -77,6 +77,7 @@ class HumanitiesCommonsIdpEnrollerCoPetitionsController extends CoPetitionsContr
 
     // If the petition already has a username then do not present
     // a form and just redirect.
+    if ($coPetition['CoPetition']['co_enrollment_flow_id'] != '654' ) {
     foreach($coPetition['EnrolleeCoPerson']['Identifier'] as $identifier) {
       if($identifier['type'] == $config['HumanitiesCommonsIdpEnrollerConfig']['username_id_type'] && 
           !empty($identifier['identifier']) ) {
@@ -84,7 +85,7 @@ class HumanitiesCommonsIdpEnrollerCoPetitionsController extends CoPetitionsContr
             $this->redirect($onFinish);
           }
     }
-
+    }
     // If the authenticated identifier was provided by the Humanities Commons IdP
     // add the username as an identifier, update name and email in LDAP using
     // values in the petition, do not show a form to collect username and
