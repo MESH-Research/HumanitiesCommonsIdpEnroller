@@ -77,6 +77,7 @@ class HumanitiesCommonsIdpEnrollerAccountsController extends StandardController 
 
     // Process submitted form
     if($this->request->is('post')) {
+      ( $debug ?  $this->log($logPrefix . "Received POST data and processing it now") : null);
       // We check for uniqueness of the identifier across all COs since this action is
       // accessed anonmymously and we cannot know the CO.
       $args = array();
@@ -104,6 +105,8 @@ class HumanitiesCommonsIdpEnrollerAccountsController extends StandardController 
           // through to having the view display the form again for the user.
           $this->Identifier->getDataSource()->rollback();
           $this->Flash->set($e->getMessage(), array('key' => 'error'));
+          $this->log($logPrefix . "WARNING: caught exception while checking availability of " . $this->request->data['username']);
+
           unset($this->request->data['username']);
           return;
         }
@@ -117,27 +120,32 @@ class HumanitiesCommonsIdpEnrollerAccountsController extends StandardController 
           $this->Flash->set(_txt('er.humanitiescommonsidpenroller.account.password.validation.error'), array('key' => 'error'));
           unset($this->request->data['password1']);
           unset($this->request->data['password2']);
+          ( $debug ?  $this->log($logPrefix . "WARNING: Password inputs did not validate") : null);
           return;
       }
 
       // Provision to LDAP
       if(!$this->_provisionLdap($config)) {
         $this->Flash->set(_txt('er.humanitiescommonsidpenroller.account.ldap'), array('key' => 'error'));
+        ( $debug ?  $this->log($logPrefix . "WARNING: unable to provision to LDAP") : null);
         unset($this->request->data['username']);
         return;
       }
 
       // Redirect to the target passed in the query string
       if (isset($this->request->query['target'])) {
+        ( $debug ?  $this->log($logPrefix . "Redirecting browser to target passed in query string") : null);
         $this->redirect(urldecode($this->request->query['target']));
       } else {
         $this->Flash->set(_txt('er.humanitiescommonsidpenroller.account.target.missing'), array('key' => 'error'));
+        $this->log($logPrefix . "ERROR: query string target missing");
         return;
       }
       
     }
 
     // Request is GET so display form in view
+    ( $debug ?  $this->log($logPrefix . "Request is GET so displaying form") : null);
   }
 
   /**
