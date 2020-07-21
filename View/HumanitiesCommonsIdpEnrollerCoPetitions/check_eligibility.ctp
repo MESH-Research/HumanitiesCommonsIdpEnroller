@@ -25,7 +25,7 @@
   print $this->Html->css('HumanitiesCommonsIdpEnroller.default');
 
   // Add page title
-  if ($current_enrollment_flow_id=='654') {
+  if ($current_enrollment_flow_id=='604') {
   $params = array('title' => 'Check Username');
   } else {
   $params = array('title' => _txt('pl.humanitiescommonsidpenroller.copetition.view.title'));
@@ -83,7 +83,9 @@
                 $args['type'] = 'text';
                 $args['label'] = false;
                 $args['required'] = 'required';
-                $args['value'] = getenv('netid');
+                if( $current_enrollment_flow_cou == 'MSU' ) {
+                  $args['value'] = getenv('netid');
+		}
                 print $this->Form->input('username', $args);
               ?>
               <span id="username-error" class="field-error"></span>
