@@ -70,6 +70,7 @@ class HumanitiesCommonsIdpEnrollerCoPetitionsController extends CoPetitionsContr
 
     $coPetition = $this->CoPetition->find('first', $args);
     if (empty($coPetition)) {
+      $this->log($logPrefix . "ERROR: could not find petition with id $id. Displaying error to user and ending flow.");
       $this->Flash->set(_txt('er.humanitiescommonsidpenroller.copetition.id.none', array($id)), array('key' => 'error'));
       $this->redirect("/");
       return;
@@ -77,6 +78,7 @@ class HumanitiesCommonsIdpEnrollerCoPetitionsController extends CoPetitionsContr
 
     // If the petition already has a username then do not present
     // a form and just redirect.
+    if ($coPetition['CoPetition']['co_enrollment_flow_id'] != '604' ) {
     foreach($coPetition['EnrolleeCoPerson']['Identifier'] as $identifier) {
       if($identifier['type'] == $config['HumanitiesCommonsIdpEnrollerConfig']['username_id_type'] && 
           !empty($identifier['identifier']) ) {
@@ -84,7 +86,7 @@ class HumanitiesCommonsIdpEnrollerCoPetitionsController extends CoPetitionsContr
             $this->redirect($onFinish);
           }
     }
-
+    }
     // If the authenticated identifier was provided by the Humanities Commons IdP
     // add the username as an identifier, update name and email in LDAP using
     // values in the petition, do not show a form to collect username and
@@ -93,6 +95,8 @@ class HumanitiesCommonsIdpEnrollerCoPetitionsController extends CoPetitionsContr
     $idType = $config['HumanitiesCommonsIdpEnrollerConfig']['username_id_type'];
     $coPersonId = $coPetition['EnrolleeCoPerson']['id'];
     if ($domain == $config['HumanitiesCommonsIdpEnrollerConfig']['hc_idp_scope']) {
+      ( $debug ?  $this->log($logPrefix . "Authenticated identifier provided by Humanities Commons IdP so adding it.") : null);
+
       $newIdentifier                               = array();
       $newIdentifier['Identifier']['identifier']   = $username;
       $newIdentifier['Identifier']['type']         = $idType;
@@ -116,6 +120,7 @@ class HumanitiesCommonsIdpEnrollerCoPetitionsController extends CoPetitionsContr
         // If we cannot attach the identifier to the CoPerson record we abort
         // the enrollment flow entirely since the user will not able to get
         // to the application without it.
+        $this->log($logPrefix . "ERROR: could not save identifier $username. Redirecting user to / and ending flow.");
         $this->redirect("/");
       } 
 
@@ -148,12 +153,14 @@ class HumanitiesCommonsIdpEnrollerCoPetitionsController extends CoPetitionsContr
                                                          $txt);
 
       // Redirect to continue the enrollment flow
+      ( $debug ? $this->log($logPrefix . "is complete and redirecting browser to " . print_r($onFinish, true)) : null);
       $this->redirect($onFinish);
 
     }
 
     // Display a form to allow the user to specify username
     if($this->request->is('post')) {
+      ( $debug ? $this->log($logPrefix . "received POST data and processing it now") : null);
       // POST, process the request
       if (preg_match('/^[a-zA-Z0-9]+$/', $this->request->data['username'])) {
         $username = $this->request->data['username'];
@@ -202,12 +209,15 @@ class HumanitiesCommonsIdpEnrollerCoPetitionsController extends CoPetitionsContr
         }
             
         // Problem saving, fall through render form again
+        $this->log($logPrefix . "ERROR: problem saving $username. Rendering form again.");
       }
 
       // Bad username input, fall through render form again
+      $this->log($logPrefix . "WARNING: bad username input. Rendering form again.");
     }
 
     // GET, fall through to display view
+    ( $debug ? $this->log($logPrefix . "received GET so displaying form to collect username") : null);
   }
 
   /**
@@ -247,6 +257,7 @@ class HumanitiesCommonsIdpEnrollerCoPetitionsController extends CoPetitionsContr
     $coPetition = $this->CoPetition->find('first', $args);
 
     if (empty($coPetition)) {
+      $this->log($logPrefix . "ERROR: Could not find petition with id $id. Redirecting browser to /");
       $this->Flash->set(_txt('er.humanitiescommonsidpenroller.copetition.id.none', array($id)), array('key' => 'error'));
       $this->redirect("/");
       return;
@@ -262,6 +273,7 @@ class HumanitiesCommonsIdpEnrollerCoPetitionsController extends CoPetitionsContr
     // gateway for both identities.
     $forced_reauth_cookie_name = 'registry_forced_reauth_requested';
     setcookie($forced_reauth_cookie_name, "1", time() + 300, '/', $_SERVER['HTTP_HOST'], true, true);
+    ( $debug ?  $this->log($logPrefix . "Set cookie $forced_reauth_cookie_name to indicate forced reauthentication requested") : null);
 
     $this->redirect($onFinish);
   }
