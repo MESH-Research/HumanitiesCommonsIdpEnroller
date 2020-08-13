@@ -213,7 +213,9 @@ class HumanitiesCommonsIdpEnrollerCoPetitionsController extends CoPetitionsContr
       }
 
       // Bad username input, fall through render form again
-      $this->log($logPrefix . "WARNING: bad username input. Rendering form again.");
+      $this->log($logPrefix . "WARNING: bad username input.");
+      $this->log($logPrefix . "WARNING: request data is " . print_r($this->request->data, true));
+      $this->log($logPrefix . "WARNING: rending form again.");
     }
 
     // GET, fall through to display view
