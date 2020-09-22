@@ -78,7 +78,7 @@ class HumanitiesCommonsIdpEnrollerCoPetitionsController extends CoPetitionsContr
 
     // If the petition already has a username then do not present
     // a form and just redirect.
-    if ($coPetition['CoPetition']['co_enrollment_flow_id'] != '604' ) {
+    if ($coPetition['CoPetition']['co_enrollment_flow_id'] != '654' ) {
     foreach($coPetition['EnrolleeCoPerson']['Identifier'] as $identifier) {
       if($identifier['type'] == $config['HumanitiesCommonsIdpEnrollerConfig']['username_id_type'] && 
           !empty($identifier['identifier']) ) {
@@ -216,6 +216,7 @@ class HumanitiesCommonsIdpEnrollerCoPetitionsController extends CoPetitionsContr
       $this->log($logPrefix . "WARNING: bad username input.");
       $this->log($logPrefix . "WARNING: request data is " . print_r($this->request->data, true));
       $this->log($logPrefix . "WARNING: rending form again.");
+      $this->Flash->set(_txt('er.humanitiescommonsidpenroller.provision.view.username.constraints'), array('key' => 'error'));
     }
 
     // GET, fall through to display view
