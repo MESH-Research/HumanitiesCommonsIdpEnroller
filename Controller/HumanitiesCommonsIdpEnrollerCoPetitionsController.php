@@ -30,7 +30,7 @@ class HumanitiesCommonsIdpEnrollerCoPetitionsController extends CoPetitionsContr
 
   public $uses = array(
                   'CoPetition',
-                  'HumanitiesCommonsIdpEnroller.HumanitiesCommonsIdpEnrollerConfig'
+                  'HumanitiesCommonsIdpEnroller.HumanitiesCommonsIdpEnroller'
                  );
 
   /**
@@ -46,17 +46,19 @@ class HumanitiesCommonsIdpEnrollerCoPetitionsController extends CoPetitionsContr
     $logPrefix = "HumanitiesCommonsIdpEnrollerCoPetitionsController execute_plugin_collectIdentifier ";
 
     // Find our configuration
+    $efwid = $this->viewVars['vv_efwid'];
+
     $args = array();
-    $args['conditions']['HumanitiesCommonsIdpEnrollerConfig.id'] = 1;
+    $args['conditions']['HumanitiesCommonsIdpEnroller.co_enrollment_flow_wedge_id'] = $efwid;
     $args['contain']                                             = true;
-    $config = $this->HumanitiesCommonsIdpEnrollerConfig->find('first', $args);
+    $config = $this->HumanitiesCommonsIdpEnroller->find('first', $args);
     if (empty($config)) {
       $this->Flash->set(_txt('er.humanitiescommonsidpenroller.account.noconfig'), array('key' => 'error'));
       $this->redirect("/");
     }
 
     // Set debugging level
-    $debug = $config['HumanitiesCommonsIdpEnrollerConfig']['debug'];
+    $debug = $config['HumanitiesCommonsIdpEnroller']['debug'];
 
     ( $debug ?  $this->log($logPrefix . "called") : null);
 
@@ -80,7 +82,7 @@ class HumanitiesCommonsIdpEnrollerCoPetitionsController extends CoPetitionsContr
     // a form and just redirect.
     if ($coPetition['CoPetition']['co_enrollment_flow_id'] != '654' ) {
     foreach($coPetition['EnrolleeCoPerson']['Identifier'] as $identifier) {
-      if($identifier['type'] == $config['HumanitiesCommonsIdpEnrollerConfig']['username_id_type'] && 
+      if($identifier['type'] == $config['HumanitiesCommonsIdpEnroller']['username_id_type'] && 
           !empty($identifier['identifier']) ) {
             ( $debug ?  $this->log($logPrefix . "Petition already includes the identifier so silently continuing with enrollment") : null);
             $this->redirect($onFinish);
@@ -92,9 +94,9 @@ class HumanitiesCommonsIdpEnrollerCoPetitionsController extends CoPetitionsContr
     // values in the petition, do not show a form to collect username and
     // instead redirect.
     list($username, $domain) = explode("@", $coPetition['CoPetition']['authenticated_identifier']);
-    $idType = $config['HumanitiesCommonsIdpEnrollerConfig']['username_id_type'];
+    $idType = $config['HumanitiesCommonsIdpEnroller']['username_id_type'];
     $coPersonId = $coPetition['EnrolleeCoPerson']['id'];
-    if ($domain == $config['HumanitiesCommonsIdpEnrollerConfig']['hc_idp_scope']) {
+    if ($domain == $config['HumanitiesCommonsIdpEnroller']['hc_idp_scope']) {
       ( $debug ?  $this->log($logPrefix . "Authenticated identifier provided by Humanities Commons IdP so adding it.") : null);
 
       $newIdentifier                               = array();
@@ -164,7 +166,7 @@ class HumanitiesCommonsIdpEnrollerCoPetitionsController extends CoPetitionsContr
       // POST, process the request
       if (preg_match('/^[a-zA-Z0-9]+$/', $this->request->data['username'])) {
         $username = $this->request->data['username'];
-        $idType = $config['HumanitiesCommonsIdpEnrollerConfig']['username_id_type'];
+        $idType = $config['HumanitiesCommonsIdpEnroller']['username_id_type'];
         $coPersonId = $coPetition['EnrolleeCoPerson']['id'];
 
         $newIdentifier                               = array();
@@ -236,17 +238,19 @@ class HumanitiesCommonsIdpEnrollerCoPetitionsController extends CoPetitionsContr
     $logPrefix = "HumanitiesCommonsIdpEnrollerCoPetitionsController execute_plugin_selectEnrollee ";
 
     // Find our configuration
+    $efwid = $this->viewVars['vv_efwid'];
+
     $args = array();
-    $args['conditions']['HumanitiesCommonsIdpEnrollerConfig.id'] = 1;
+    $args['conditions']['HumanitiesCommonsIdpEnroller.co_enrollment_flow_wedge_id'] = $efwid;
     $args['contain']                                             = true;
-    $config = $this->HumanitiesCommonsIdpEnrollerConfig->find('first', $args);
+    $config = $this->HumanitiesCommonsIdpEnroller->find('first', $args);
     if (empty($config)) {
       $this->Flash->set(_txt('er.humanitiescommonsidpenroller.account.noconfig'), array('key' => 'error'));
       $this->redirect("/");
     }
 
     // Set debugging level
-    $debug = $config['HumanitiesCommonsIdpEnrollerConfig']['debug'];
+    $debug = $config['HumanitiesCommonsIdpEnroller']['debug'];
 
     // Use the petition id to find the petition
     $args = array();
@@ -354,7 +358,7 @@ class HumanitiesCommonsIdpEnrollerCoPetitionsController extends CoPetitionsContr
   protected function _updateLdap($username, $coPetition, $config) {
     $logPrefix = "HumanitiesCommonsIdpEnrollerCoPetitionsController _updateLdap ";
 
-    $cxn = ldap_connect($config['HumanitiesCommonsIdpEnrollerConfig']['ldap_serverurl']);
+    $cxn = ldap_connect($config['HumanitiesCommonsIdpEnroller']['ldap_serverurl']);
     
     if(!$cxn) {
       throw new RuntimeException(_txt('er.ldapprovisioner.connect'), 0x5b /*LDAP_CONNECT_ERROR*/);
@@ -364,8 +368,8 @@ class HumanitiesCommonsIdpEnrollerCoPetitionsController extends CoPetitionsContr
     ldap_set_option($cxn, LDAP_OPT_PROTOCOL_VERSION, 3);
     
     // Bind to LDAP server
-    $binddn = $config['HumanitiesCommonsIdpEnrollerConfig']['ldap_binddn'];
-    $bindPassword = $config['HumanitiesCommonsIdpEnrollerConfig']['ldap_bind_password'];
+    $binddn = $config['HumanitiesCommonsIdpEnroller']['ldap_binddn'];
+    $bindPassword = $config['HumanitiesCommonsIdpEnroller']['ldap_bind_password'];
     if(!@ldap_bind($cxn, $binddn, $bindPassword)) {
       $msg = ldap_error($cxn) . " : " .  strval(ldap_errno($cxn));
       $this->log($logPrefix . "Unable to bind to LDAP server: " . $msg);
@@ -375,7 +379,7 @@ class HumanitiesCommonsIdpEnrollerCoPetitionsController extends CoPetitionsContr
     $mail = $this->_parseEmail($coPetition, $config);
     list($givenName, $sn) = $this->_parseName($coPetition, $config);
 
-    $basedn = $config['HumanitiesCommonsIdpEnrollerConfig']['ldap_basedn'];
+    $basedn = $config['HumanitiesCommonsIdpEnroller']['ldap_basedn'];
     $dn = "uid=$username,$basedn";
 
     $attributes              = array();
