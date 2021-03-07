@@ -31,7 +31,7 @@ class HumanitiesCommonsIdpEnrollerAccountsController extends StandardController 
   public $uses = array(
                   'Co',
                   'Identifier',
-                  'HumanitiesCommonsIdpEnroller.HumanitiesCommonsIdpEnrollerConfig',
+                  'HumanitiesCommonsIdpEnroller.HumanitiesCommonsIdpEnroller',
                   'HumanitiesCommonsIdpEnroller.HumanitiesCommonsIdpEnrollerAccount',
                  );
 
@@ -62,16 +62,16 @@ class HumanitiesCommonsIdpEnrollerAccountsController extends StandardController 
 
     // Find our configuration
     $args = array();
-    $args['conditions']['HumanitiesCommonsIdpEnrollerConfig.id'] = 1;
+    $args['conditions']['HumanitiesCommonsIdpEnroller.id'] = 1;
     $args['contain']                                             = true;
-    $config = $this->HumanitiesCommonsIdpEnrollerConfig->find('first', $args);
+    $config = $this->HumanitiesCommonsIdpEnroller->find('first', $args);
     if (empty($config)) {
       $this->Flash->set(_txt('er.humanitiescommonsidpenroller.account.noconfig'), array('key' => 'error'));
       $this->redirect("/");
     }
 
     // Set debugging level
-    $debug = $config['HumanitiesCommonsIdpEnrollerConfig']['debug'];
+    $debug = $config['HumanitiesCommonsIdpEnroller']['debug'];
 
     ( $debug ?  $this->log($logPrefix . "called") : null);
 
@@ -97,7 +97,7 @@ class HumanitiesCommonsIdpEnrollerAccountsController extends StandardController 
 
         try {
           $this->Identifier->checkAvailability($this->request->data['username'],
-                                   $config['HumanitiesCommonsIdpEnrollerConfig']['username_id_type'],
+                                   $config['HumanitiesCommonsIdpEnroller']['username_id_type'],
                                    $co['Co']['id']);
         }
         catch(Exception $e) {
@@ -161,7 +161,7 @@ class HumanitiesCommonsIdpEnrollerAccountsController extends StandardController 
   function _provisionLdap($config) {
     $logPrefix = "HumanitiesCommonsIdpEnrollerAccountsController _provisionLdap ";
 
-    $cxn = ldap_connect($config['HumanitiesCommonsIdpEnrollerConfig']['ldap_serverurl']);
+    $cxn = ldap_connect($config['HumanitiesCommonsIdpEnroller']['ldap_serverurl']);
     
     if(!$cxn) {
       throw new RuntimeException(_txt('er.ldapprovisioner.connect'), 0x5b /*LDAP_CONNECT_ERROR*/);
@@ -171,8 +171,8 @@ class HumanitiesCommonsIdpEnrollerAccountsController extends StandardController 
     ldap_set_option($cxn, LDAP_OPT_PROTOCOL_VERSION, 3);
     
     // Bind to LDAP server
-    $binddn = $config['HumanitiesCommonsIdpEnrollerConfig']['ldap_binddn'];
-    $bindPassword = $config['HumanitiesCommonsIdpEnrollerConfig']['ldap_bind_password'];
+    $binddn = $config['HumanitiesCommonsIdpEnroller']['ldap_binddn'];
+    $bindPassword = $config['HumanitiesCommonsIdpEnroller']['ldap_bind_password'];
     if(!@ldap_bind($cxn, $binddn, $bindPassword)) {
       $msg = ldap_error($cxn) . " : " .  strval(ldap_errno($cxn));
       $this->log($logPrefix . "Unable to bind to LDAP server: " . $msg);
@@ -182,7 +182,7 @@ class HumanitiesCommonsIdpEnrollerAccountsController extends StandardController 
     $uid = $this->request->data['username'];
 
     // Create DN and attributes
-    $basedn = $config['HumanitiesCommonsIdpEnrollerConfig']['ldap_basedn'];
+    $basedn = $config['HumanitiesCommonsIdpEnroller']['ldap_basedn'];
     $dn = "uid=$uid,$basedn";
     $attributes = array();
     $attributes['objectClass'][0] = 'inetOrgPerson';

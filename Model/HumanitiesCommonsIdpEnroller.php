@@ -26,6 +26,52 @@ class HumanitiesCommonsIdpEnroller extends AppModel {
   // Required by COmanage Plugins
   public $cmPluginType = "enroller";
 
+  // Document foreign keys
+  public $cmPluginHasMany = array();
+
+  // Add behaviors
+  public $actsAs = array('Containable', 'Changelog' => array('priority' => 5));
+
+  // Association rules from this model to other models
+  public $belongsTo = array("CoEnrollmentFlowWedge");
+
+  // Default display field for cake generated views
+  public $displayField = "ldap_serverurl";
+  
+  // Validation rules for table elements
+  public $validate = array(
+    'username_id_type' => array(
+      'rule' => 'notBlank',
+      'required' => true,
+      'allowEmpty' => false
+    ),
+    'ldap_serverurl' => array(
+      'rule' => 'notBlank',
+      'required' => true,
+      'allowEmpty' => false
+    ),
+    'ldap_binddn' => array(
+      'rule' => 'notBlank',
+      'required' => true,
+      'allowEmpty' => false
+    ),
+    'ldap_bind_password' => array(
+      'rule' => 'notBlank',
+      'required' => true,
+      'allowEmpty' => false
+    ),
+    'ldap_basedn' => array(
+      'rule' => 'notBlank',
+      'required' => true,
+      'allowEmpty' => false
+    ),
+    'hc_idp_scope' => array(
+      'rule' => 'notBlank',
+      'required' => true,
+      'allowEmpty' => false
+    )
+  );
+  
   /**
    * Expose menu items.
    * 
@@ -34,10 +80,6 @@ class HumanitiesCommonsIdpEnroller extends AppModel {
    */
   
   public function cmPluginMenus() {
-    return array(
-      "cmp" => array(_txt('pl.humanitiescommonsidpenroller.config.menu') =>
-                  array('controller' => "humanities_commons_idp_enroller_configs",
-                        'action'    => "index"))
-      );
+    return array();
   }
 }
