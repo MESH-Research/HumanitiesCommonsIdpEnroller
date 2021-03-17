@@ -22,7 +22,7 @@
  * @version       $Id$
  */
 
-App::uses("StandardController", "Controller");
+App::uses("SEWController", "Controller");
 
 class HumanitiesCommonsIdpEnrollersController extends SEWController {
   // Class name, used by Cake
