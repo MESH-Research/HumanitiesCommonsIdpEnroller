@@ -32,6 +32,8 @@ $cm_humanities_commons_idp_enroller_texts['en_US'] = array(
   // Titles, per-controller
   'ct.humanities_commons_idp_enroller_configs.1'  => 'Humanities Commons IdP Enroller Configuration',
   'ct.humanities_commons_idp_enroller_configs.pl' => 'Humanities Commons IdP Enroller Configurations',
+  'ct.humanities_commons_idp_enrollers.1'  => 'Humanities Commons IdP Enroller',
+  'ct.humanities_commons_idp_enrollers.pl'  => 'Humanities Commons IdP Enrollers',
   
   // Error messages
   'er.humanitiescommonsidpenroller.account.ldap' => 'Error provisioning account to LDAP',

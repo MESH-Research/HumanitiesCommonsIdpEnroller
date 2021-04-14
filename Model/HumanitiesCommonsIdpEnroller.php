@@ -40,6 +40,11 @@ class HumanitiesCommonsIdpEnroller extends AppModel {
   
   // Validation rules for table elements
   public $validate = array(
+    'co_enrollment_flow_wedge_id' => array(
+      'rule' => 'numeric',
+      'required' => true,
+      'allowEmpty' => false
+    ),
     'username_id_type' => array(
       'rule' => 'notBlank',
       'required' => true,
