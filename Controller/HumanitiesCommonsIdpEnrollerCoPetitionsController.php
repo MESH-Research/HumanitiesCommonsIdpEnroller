@@ -238,7 +238,7 @@ class HumanitiesCommonsIdpEnrollerCoPetitionsController extends CoPetitionsContr
     $logPrefix = "HumanitiesCommonsIdpEnrollerCoPetitionsController execute_plugin_selectEnrollee ";
 
     // Find our configuration
-    $efwid = $this->viewVars['vv_efwid'];
+    $efwid = $this->params['named']['efwid'];
 
     $args = array();
     $args['conditions']['HumanitiesCommonsIdpEnroller.co_enrollment_flow_wedge_id'] = $efwid;
