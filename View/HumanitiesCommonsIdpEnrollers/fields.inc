@@ -35,8 +35,10 @@
     return false;
   
   $l = 1;
+  
+  print $this->Form->hidden('co_enrollment_flow_wedge_id', array('default' => $humanities_commons_idp_enrollers[0]['CoEnrollmentFlowWedge']['id'])) . "\n";
 ?>
-<table id="<?php print $this->action; ?>_humanities_commons_idp_enroller_config" class="ui-widget">
+<table id="<?php print $this->action; ?>_humanities_commons_idp_enroller" class="ui-widget">
   <tbody>
     <tr class="line<?php print ($l % 2); $l++; ?>">
       <td>
@@ -44,7 +46,7 @@
         <font class="desc"><?php print _txt('pl.humanitiescommonsidpenroller.config.ldap_serverurl.desc'); ?></font>
       </td>
       <td>
-        <?php print ($e ? $this->Form->input('ldap_serverurl', array('size' => 50)) : Sanitize::html($humanities_commons_idp_enroller_configs[0]['HumanitiesCommonsIdpEnrollerConfig']['ldap_serverurl'])); ?>
+        <?php print ($e ? $this->Form->input('ldap_serverurl', array('size' => 50)) : Sanitize::html($humanities_commons_idp_enrollers[0]['HumanitiesCommonsIdpEnroller']['ldap_serverurl'])); ?>
       </td>
     </tr>
     <tr class="line<?php print ($l % 2); $l++; ?>">
@@ -53,7 +55,7 @@
         <font class="desc"><?php print _txt('pl.humanitiescommonsidpenroller.config.ldap_binddn.desc'); ?></font>
       </td>
       <td>
-        <?php print ($e ? $this->Form->input('ldap_binddn', array('size' => 50)) : Sanitize::html($humanities_commons_idp_enroller_configs[0]['HumanitiesCommonsIdpEnrollerConfig']['ldap_binddn'])); ?>
+        <?php print ($e ? $this->Form->input('ldap_binddn', array('size' => 50)) : Sanitize::html($humanities_commons_idp_enrollers[0]['HumanitiesCommonsIdpEnroller']['ldap_binddn'])); ?>
       </td>
     </tr>
     <tr class="line<?php print ($l % 2); $l++; ?>">
@@ -71,7 +73,7 @@
         <font class="desc"><?php print _txt('pl.humanitiescommonsidpenroller.config.ldap_basedn.desc'); ?></font>
       </td>
       <td>
-        <?php print ($e ? $this->Form->input('ldap_basedn', array('size' => 50)) : Sanitize::html($humanities_commons_idp_enroller_configs[0]['HumanitiesCommonsIdpEnrollerConfig']['ldap_basedn'])); ?>
+        <?php print ($e ? $this->Form->input('ldap_basedn', array('size' => 50)) : Sanitize::html($humanities_commons_idp_enrollers[0]['HumanitiesCommonsIdpEnroller']['ldap_basedn'])); ?>
       </td>
     </tr>
     <tr class="line<?php print ($l % 2); $l++; ?>">
@@ -80,7 +82,7 @@
         <font class="desc"><?php print _txt('pl.humanitiescommonsidpenroller.config.username_id_type.desc'); ?></font>
       </td>
       <td>
-        <?php print ($e ? $this->Form->input('username_id_type', array('size' => 50)) : Sanitize::html($humanities_commons_idp_enroller_configs[0]['HumanitiesCommonsIdpEnrollerConfig']['username_id_type'])); ?>
+        <?php print ($e ? $this->Form->input('username_id_type', array('size' => 50)) : Sanitize::html($humanities_commons_idp_enrollers[0]['HumanitiesCommonsIdpEnroller']['username_id_type'])); ?>
       </td>
     </tr>
     <tr class="line<?php print ($l % 2); $l++; ?>">
@@ -89,7 +91,7 @@
         <font class="desc"><?php print _txt('pl.humanitiescommonsidpenroller.config.hc_idp_scope.desc'); ?></font>
       </td>
       <td>
-        <?php print ($e ? $this->Form->input('hc_idp_scope', array('size' => 50)) : Sanitize::html($humanities_commons_idp_enroller_configs[0]['HumanitiesCommonsIdpEnrollerConfig']['hc_idp_scope'])); ?>
+        <?php print ($e ? $this->Form->input('hc_idp_scope', array('size' => 50)) : Sanitize::html($humanities_commons_idp_enrollers[0]['HumanitiesCommonsIdpEnroller']['hc_idp_scope'])); ?>
       </td>
     </tr>
     <tr class="line<?php print ($l % 2); $l++; ?>">
@@ -98,7 +100,7 @@
         <font class="desc"><?php print _txt('pl.humanitiescommonsidpenroller.config.debug.desc'); ?></font>
       </td>
       <td>
-        <?php print ($e ? $this->Form->input('debug', array('size' => 50)) : Sanitize::html($humanities_commons_idp_enroller_configs[0]['HumanitiesCommonsIdpEnrollerConfig']['debug'])); ?>
+        <?php print ($e ? $this->Form->input('debug', array('size' => 50)) : Sanitize::html($humanities_commons_idp_enrollers[0]['HumanitiesCommonsIdpEnroller']['debug'])); ?>
       </td>
     </tr>
     <tr>
