@@ -33,6 +33,7 @@
   print $this->element("pageTitleAndButtons", $params);
 
   print $this->Form->create(false);
+  print $this->Form->hidden('CoPetition.co_enrollment_flow_wedge_id', array('default' => $vv_efwid));
 ?>
 
 <script type="text/javascript">
