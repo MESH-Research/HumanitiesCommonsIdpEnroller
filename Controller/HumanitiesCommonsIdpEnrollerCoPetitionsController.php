@@ -50,7 +50,7 @@ class HumanitiesCommonsIdpEnrollerCoPetitionsController extends CoPetitionsContr
 
     $args = array();
     $args['conditions']['HumanitiesCommonsIdpEnroller.co_enrollment_flow_wedge_id'] = $efwid;
-    $args['contain']                                             = true;
+    $args['contain']                                             = false;
     $config = $this->HumanitiesCommonsIdpEnroller->find('first', $args);
     if (empty($config)) {
       $this->Flash->set(_txt('er.humanitiescommonsidpenroller.account.noconfig'), array('key' => 'error'));
@@ -223,6 +223,7 @@ class HumanitiesCommonsIdpEnrollerCoPetitionsController extends CoPetitionsContr
 
     // GET, fall through to display view
     ( $debug ? $this->log($logPrefix . "received GET so displaying form to collect username") : null);
+    $this->set('vv_efwid', $efwid);
   }
 
   /**
@@ -242,7 +243,7 @@ class HumanitiesCommonsIdpEnrollerCoPetitionsController extends CoPetitionsContr
 
     $args = array();
     $args['conditions']['HumanitiesCommonsIdpEnroller.co_enrollment_flow_wedge_id'] = $efwid;
-    $args['contain']                                             = true;
+    $args['contain']                                             = false;
     $config = $this->HumanitiesCommonsIdpEnroller->find('first', $args);
     if (empty($config)) {
       $this->Flash->set(_txt('er.humanitiescommonsidpenroller.account.noconfig'), array('key' => 'error'));
