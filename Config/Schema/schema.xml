@@ -40,6 +40,7 @@
     <field name="ldap_bind_password" type="C" size="64" />
     <field name="ldap_basedn" type="C" size="128" />
     <field name="hc_idp_scope" type="C" size="64" />
+    <field name="username_env_variable" type="C" size="256" />
     <field name="debug" type="L" />
     <field name="created" type="T" />
     <field name="modified" type="T" />

@@ -74,7 +74,12 @@ class HumanitiesCommonsIdpEnroller extends AppModel {
       'rule' => 'notBlank',
       'required' => true,
       'allowEmpty' => false
-    )
+    ),
+    'username_env_variable' => array(
+      'rule' => array('validateInput'),
+      'required' => false,
+      'allowEmpty' => true
+    ),
   );
   
   /**

@@ -223,7 +223,12 @@ class HumanitiesCommonsIdpEnrollerCoPetitionsController extends CoPetitionsContr
 
     // GET, fall through to display view
     ( $debug ? $this->log($logPrefix . "received GET so displaying form to collect username") : null);
+
     $this->set('vv_efwid', $efwid);
+
+    if(!empty($config['HumanitiesCommonsIdpEnroller']['username_env_variable'])) {
+      $this->set('vv_suggested_username', getenv($config['HumanitiesCommonsIdpEnroller']['username_env_variable']));
+    }
   }
 
   /**

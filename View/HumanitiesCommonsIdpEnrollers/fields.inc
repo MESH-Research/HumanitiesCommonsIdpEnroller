@@ -96,6 +96,15 @@
     </tr>
     <tr class="line<?php print ($l % 2); $l++; ?>">
       <td>
+        <strong class="fieldTitle"><?php print _txt('pl.humanitiescommonsidpenroller.config.username_env_variable'); ?></strong><br />
+        <font class="desc"><?php print _txt('pl.humanitiescommonsidpenroller.config.username_env_variable.desc'); ?></font>
+      </td>
+      <td>
+        <?php print ($e ? $this->Form->input('username_env_variable', array('size' => 50)) : Sanitize::html($humanities_commons_idp_enrollers[0]['HumanitiesCommonsIdpEnroller']['username_env_variable'])); ?>
+      </td>
+    </tr>
+    <tr class="line<?php print ($l % 2); $l++; ?>">
+      <td>
         <strong class="fieldTitle"><?php print _txt('pl.humanitiescommonsidpenroller.config.debug'); ?></strong><font class="required">*</font><br />
         <font class="desc"><?php print _txt('pl.humanitiescommonsidpenroller.config.debug.desc'); ?></font>
       </td>
