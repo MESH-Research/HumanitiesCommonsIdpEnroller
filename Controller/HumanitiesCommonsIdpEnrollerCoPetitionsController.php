@@ -50,7 +50,7 @@ class HumanitiesCommonsIdpEnrollerCoPetitionsController extends CoPetitionsContr
 
     $args = array();
     $args['conditions']['HumanitiesCommonsIdpEnroller.co_enrollment_flow_wedge_id'] = $efwid;
-    $args['contain']                                             = false;
+    $args['contain']                                             = true;
     $config = $this->HumanitiesCommonsIdpEnroller->find('first', $args);
     if (empty($config)) {
       $this->Flash->set(_txt('er.humanitiescommonsidpenroller.account.noconfig'), array('key' => 'error'));
@@ -80,7 +80,7 @@ class HumanitiesCommonsIdpEnrollerCoPetitionsController extends CoPetitionsContr
 
     // If the petition already has a username then do not present
     // a form and just redirect.
-    if ($coPetition['CoPetition']['co_enrollment_flow_id'] != '604' ) {
+    if ($coPetition['CoPetition']['co_enrollment_flow_id'] != '654' ) {
     foreach($coPetition['EnrolleeCoPerson']['Identifier'] as $identifier) {
       if($identifier['type'] == $config['HumanitiesCommonsIdpEnroller']['username_id_type'] && 
           !empty($identifier['identifier']) ) {
@@ -248,7 +248,7 @@ class HumanitiesCommonsIdpEnrollerCoPetitionsController extends CoPetitionsContr
 
     $args = array();
     $args['conditions']['HumanitiesCommonsIdpEnroller.co_enrollment_flow_wedge_id'] = $efwid;
-    $args['contain']                                             = false;
+    $args['contain']                                             = true;
     $config = $this->HumanitiesCommonsIdpEnroller->find('first', $args);
     if (empty($config)) {
       $this->Flash->set(_txt('er.humanitiescommonsidpenroller.account.noconfig'), array('key' => 'error'));
