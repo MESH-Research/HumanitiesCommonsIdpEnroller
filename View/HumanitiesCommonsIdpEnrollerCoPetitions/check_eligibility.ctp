@@ -33,7 +33,6 @@
   print $this->element("pageTitleAndButtons", $params);
 
   print $this->Form->create(false);
-  print $this->Form->hidden('CoPetition.co_enrollment_flow_wedge_id', array('default' => $vv_efwid));
 ?>
 
 <script type="text/javascript">
@@ -84,9 +83,9 @@
                 $args['type'] = 'text';
                 $args['label'] = false;
                 $args['required'] = 'required';
-                if( $current_enrollment_flow_cou == 'MSU' ) {
-                  $args['value'] = getenv('netid');
-		}
+                if(!empty($vv_suggested_username)) {
+                  $args['value'] = $vv_suggested_username;
+                }
                 print $this->Form->input('username', $args);
               ?>
               <span id="username-error" class="field-error"></span>
