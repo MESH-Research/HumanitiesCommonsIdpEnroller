@@ -86,6 +86,9 @@
                 if(!empty($vv_suggested_username)) {
                   $args['value'] = $vv_suggested_username;
                 }
+                if(!empty($this->Session->read('HASTAC_username'))) {
+                  $args['value'] = $this->Session->read('HASTAC_username');
+                }
                 print $this->Form->input('username', $args);
               ?>
               <span id="username-error" class="field-error"></span>
